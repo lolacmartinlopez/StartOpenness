@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Interop.Excel; 
 
-namespace StartOpenness
+namespace EPLAN_TIA
 {
     public partial class Form1 : Form
     {
@@ -464,7 +464,7 @@ namespace StartOpenness
 
             //Strings for buttons
             txtStatusLabel.Text = statusEN;
-            txtSelect2.Text = txtPathField2EN;
+            //txtSelect2.Text = txtPathField2EN;
             txtSelect1.Text = txtPathField1EN;
             btn_Path1.Text = browseEN;
             btn_Path2.Text = browseEN;
@@ -529,7 +529,7 @@ namespace StartOpenness
 
             //Strings for buttons
             txtStatusLabel.Text = statusDE;
-            txtSelect2.Text = txtPathField2DE;
+            //txtSelect2.Text = txtPathField2DE;
             txtSelect1.Text = txtPathField1DE;
             btn_Path1.Text = browseDE;
             btn_Path2.Text = browseDE;
@@ -759,9 +759,6 @@ namespace StartOpenness
             }
         }
 
-        private void btn_Path3_Click(object sender, EventArgs e)
-        {
 
-        }
     }
 }

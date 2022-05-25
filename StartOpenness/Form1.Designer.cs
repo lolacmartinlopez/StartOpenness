@@ -6,7 +6,7 @@ using Microsoft.Win32;
 using System.Reflection;
 using System.IO;
 
-namespace StartOpenness
+namespace EPLAN_TIA
 {
     partial class Form1
     {
@@ -36,6 +36,7 @@ namespace StartOpenness
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.Label label2;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.txt_Status = new System.Windows.Forms.TextBox();
             this.btn_Start = new System.Windows.Forms.Button();
@@ -44,12 +45,9 @@ namespace StartOpenness
             this.version = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.btn_Path3 = new System.Windows.Forms.Button();
             this.txt_Path3 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
-            this.txtSelect2 = new System.Windows.Forms.Label();
-            this.btn_Path2 = new System.Windows.Forms.Button();
             this.txt_Path2 = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -64,6 +62,9 @@ namespace StartOpenness
             this.button_Maximize = new System.Windows.Forms.Button();
             this.button_Exit = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.btn_Path3 = new System.Windows.Forms.Button();
+            this.btn_Path2 = new System.Windows.Forms.Button();
+            label2 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -72,7 +73,7 @@ namespace StartOpenness
             // 
             // txt_Status
             // 
-            this.txt_Status.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.txt_Status.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_Status.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(228)))), ((int)(((byte)(229)))), ((int)(((byte)(230)))));
             this.txt_Status.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -99,7 +100,7 @@ namespace StartOpenness
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(228)))), ((int)(((byte)(229)))), ((int)(((byte)(230)))));
             this.panel1.Controls.Add(this.txtStatusLabel);
@@ -148,16 +149,16 @@ namespace StartOpenness
             // 
             // panel2
             // 
-            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.Color.White;
+            this.panel2.Controls.Add(this.btn_Path2);
             this.panel2.Controls.Add(this.btn_Path3);
+            this.panel2.Controls.Add(label2);
             this.panel2.Controls.Add(this.txt_Path3);
             this.panel2.Controls.Add(this.label1);
             this.panel2.Controls.Add(this.label5);
-            this.panel2.Controls.Add(this.txtSelect2);
-            this.panel2.Controls.Add(this.btn_Path2);
             this.panel2.Controls.Add(this.txt_Path2);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.checkBox1);
@@ -171,30 +172,22 @@ namespace StartOpenness
             this.panel2.Size = new System.Drawing.Size(431, 366);
             this.panel2.TabIndex = 26;
             // 
-            // btn_Path3
-            // 
-            this.btn_Path3.Location = new System.Drawing.Point(310, 178);
-            this.btn_Path3.Name = "btn_Path3";
-            this.btn_Path3.Size = new System.Drawing.Size(75, 23);
-            this.btn_Path3.TabIndex = 0;
-            this.btn_Path3.Click += new System.EventHandler(this.btn_Path3_Click);
-            // 
             // txt_Path3
             // 
             this.txt_Path3.Location = new System.Drawing.Point(38, 157);
             this.txt_Path3.Name = "txt_Path3";
-            this.txt_Path3.Size = new System.Drawing.Size(262, 20);
+            this.txt_Path3.Size = new System.Drawing.Size(361, 20);
             this.txt_Path3.TabIndex = 1;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label1.Location = new System.Drawing.Point(26, 141);
+            this.label1.Location = new System.Drawing.Point(35, 141);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(281, 13);
+            this.label1.Size = new System.Drawing.Size(159, 13);
             this.label1.TabIndex = 42;
-            this.label1.Text = "Select path where the Excel file with the Robot Programm ";
+            this.label1.Text = "File Excel with DataConnections";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label5
@@ -207,31 +200,12 @@ namespace StartOpenness
             this.label5.TabIndex = 41;
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // txtSelect2
-            // 
-            this.txtSelect2.AutoSize = true;
-            this.txtSelect2.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.txtSelect2.Location = new System.Drawing.Point(26, 183);
-            this.txtSelect2.Name = "txtSelect2";
-            this.txtSelect2.Size = new System.Drawing.Size(210, 13);
-            this.txtSelect2.TabIndex = 40;
-            this.txtSelect2.Text = "Select path where the .lc files will be saved";
-            this.txtSelect2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // btn_Path2
-            // 
-            this.btn_Path2.Location = new System.Drawing.Point(310, 248);
-            this.btn_Path2.Name = "btn_Path2";
-            this.btn_Path2.Size = new System.Drawing.Size(75, 23);
-            this.btn_Path2.TabIndex = 43;
-            this.btn_Path2.Click += new System.EventHandler(this.btn_Path2_Click);
-            // 
             // txt_Path2
             // 
             this.txt_Path2.BackColor = System.Drawing.Color.White;
             this.txt_Path2.Font = new System.Drawing.Font("Arial", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txt_Path2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(85)))), ((int)(((byte)(97)))));
-            this.txt_Path2.Location = new System.Drawing.Point(38, 210);
+            this.txt_Path2.Location = new System.Drawing.Point(36, 225);
             this.txt_Path2.Name = "txt_Path2";
             this.txt_Path2.Size = new System.Drawing.Size(364, 23);
             this.txt_Path2.TabIndex = 38;
@@ -264,9 +238,9 @@ namespace StartOpenness
             this.txtSelect1.ForeColor = System.Drawing.SystemColors.ControlText;
             this.txtSelect1.Location = new System.Drawing.Point(32, 56);
             this.txtSelect1.Name = "txtSelect1";
-            this.txtSelect1.Size = new System.Drawing.Size(240, 13);
+            this.txtSelect1.Size = new System.Drawing.Size(126, 13);
             this.txtSelect1.TabIndex = 35;
-            this.txtSelect1.Text = "Select path where the Excel with Precision Points";
+            this.txtSelect1.Text = "File Excel with PLC Data ";
             this.txtSelect1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btn_Path1
@@ -295,7 +269,7 @@ namespace StartOpenness
             // 
             // panel3
             // 
-            this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(215)))), ((int)(((byte)(25)))), ((int)(((byte)(70)))));
             this.panel3.Controls.Add(this.btn_DE);
@@ -356,9 +330,9 @@ namespace StartOpenness
             this.label7.ForeColor = System.Drawing.Color.White;
             this.label7.Location = new System.Drawing.Point(103, 14);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(108, 16);
+            this.label7.Size = new System.Drawing.Size(86, 16);
             this.label7.TabIndex = 34;
-            this.label7.Text = "Punkte J1J4J6";
+            this.label7.Text = "EPLAN->TIA";
             // 
             // button_Minimize
             // 
@@ -420,6 +394,39 @@ namespace StartOpenness
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(36, 200);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(158, 13);
+            label2.TabIndex = 44;
+            label2.Text = "Select folder to save the Project";
+            // 
+            // btn_Path3
+            // 
+            this.btn_Path3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
+            this.btn_Path3.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_Path3.ForeColor = System.Drawing.Color.White;
+            this.btn_Path3.Location = new System.Drawing.Point(310, 183);
+            this.btn_Path3.Name = "btn_Path3";
+            this.btn_Path3.Size = new System.Drawing.Size(89, 30);
+            this.btn_Path3.TabIndex = 45;
+            this.btn_Path3.Text = "Browse";
+            this.btn_Path3.UseVisualStyleBackColor = false;
+            // 
+            // btn_Path2
+            // 
+            this.btn_Path2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
+            this.btn_Path2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_Path2.ForeColor = System.Drawing.Color.White;
+            this.btn_Path2.Location = new System.Drawing.Point(311, 254);
+            this.btn_Path2.Name = "btn_Path2";
+            this.btn_Path2.Size = new System.Drawing.Size(89, 30);
+            this.btn_Path2.TabIndex = 46;
+            this.btn_Path2.Text = "Browse";
+            this.btn_Path2.UseVisualStyleBackColor = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -470,12 +477,11 @@ namespace StartOpenness
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label txtSelect2;
-        private System.Windows.Forms.Button btn_Path2;
         private System.Windows.Forms.TextBox txt_Path2;
-        private System.Windows.Forms.Button btn_Path3;
         private System.Windows.Forms.TextBox txt_Path3;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btn_Path2;
+        private System.Windows.Forms.Button btn_Path3;
     }
 }
 
