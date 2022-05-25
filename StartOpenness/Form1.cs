@@ -8,7 +8,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
-using Microsoft.Office.Interop.Excel; 
+using Microsoft.Office.Interop.Excel;
+using System.Linq;
 
 namespace EPLAN_TIA
 {
@@ -17,13 +18,27 @@ namespace EPLAN_TIA
         //Excel variables
         Excel._Application xlApp; //Asi llamamos al tipo de formato que me viene con el excel.
         Excel._Application xlApp_2; //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel._Application xlApp_3; //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
+
         object misValue = System.Reflection.Missing.Value;
+
+        //SPSData
         Excel.Workbook xlWorkBook;
         Excel.Worksheet xlWorkSheet;
+
+        //SPS Verbindungen
+
         Excel.Workbook xlWorkBook_2;
         Excel.Worksheet xlWorkSheet_2;
 
+        //SPS neue Verbindungen
 
+        Excel.Workbook xlWorkBook_3;
+        Excel.Worksheet xlWorkSheet_3;
+
+        //Variables para exportar 
+
+    
         //Language selected (English by default)
         string languageSelected = "EN";
 
@@ -86,27 +101,58 @@ namespace EPLAN_TIA
         string statusDE = "Status";
         string invalidPathDE = "Ungültiger Pfad";
 
-        //Datos relevantes 
+        //Lista de objetos 
 
-        //List<string> usedNames = new List<string>();
-       
+        List<InformationSPS> informationSPs = new List<InformationSPS>(); //keep all the information of the differents SPS avaible
+        List <verbindungenEPLAN> verbindungenEPLANs = new List<verbindungenEPLAN>(); //keep only the conexions for each IO port from a SPS (or articles that we can import in TIA)
+
         public Form1()
         {
             InitializeComponent();
             AppDomain CurrentDomain = AppDomain.CurrentDomain;
         }
 
-
-        public class InformationSPS
+        //Ejemplo de como guardar la informacion del primer Excel. 
+        public class InformationSPS //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
         {
-            string serialNum;
-            string eplanBemerk;
-            string IP; //quizas luego tengo que ponerlo modo INT 
-            string cpuPPAL; //a que CPU esta conectada
-            string startAdresse; //start adresse de la tarjeta
-            Dictionary<string,string> adresseSW_HW; //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
+            public string serialNum { get; set; }
+            public string eplanBemerk { get; set; }
+            public string IP { get; set; }                                 //quizas luego tengo que ponerlo modo INT 
+            public string cpuPPAL { get; set; }                           //a que CPU esta conectada
+            public string startAdresse { get; set; }                     //start adresse de la tarjeta
+            public Dictionary<string,string> adresseSW_HW { get; set; } //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
             
+            public InformationSPS (string serianum, string eplanbemerk, string ip, string cpuppal, string startadress, Dictionary<string, string> adresse_sw_hw)
+            {
+                serialNum = serianum;
+                eplanBemerk = eplanbemerk;
+                IP = ip;
+                cpuPPAL = cpuppal;
+                startAdresse = startadress;
+                adresseSW_HW = adresse_sw_hw; 
+            }
         }
+
+        public class verbindungenEPLAN //aqui podemos direccionar sabiendo ya los datos de cada SPS (es decir, como se llama cada uno) Esto será para importarlo en TIA
+
+        {
+            public string codSPS { get; set; } //aqui guardamos solo el codigo identificativo del PLC al que pertenece 
+            public string modIO { get; set; } //aqui guardamos a cuales de los perifericos pertenece
+            public string pinIO { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
+
+            public verbindungenEPLAN (string codsps, string modio, string pinio)
+            {
+
+                codSPS = codsps; 
+                modIO = modio;
+                pinIO = pinio;
+            }
+        }
+
+        //Ejemplo de como guardar la informacion. 
+        //verbindungenEPLAN lineSPS= new verbindungenEPLAN(); aqui le deberiamos de darle los datos que tengamos en las lineas. 
+
+        
 
         //Load form
         private void Form1_Load(object sender, EventArgs e)
@@ -121,300 +167,314 @@ namespace EPLAN_TIA
         //Start the process
         private void btn_Start_Click(object sender, EventArgs e)
         {
-            //Excel variables parte 1 del proceso
+            //Excel variables parte 1 del proceso (obtener datos del SPS)
 
-            //xlApp = new Excel.Application();
-            //xlWorkBook = xlApp.Workbooks.Open(txt_Path3.Text); //se abre primero el Excel con los programas
-            //xlWorkSheet = xlWorkBook.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
+            xlApp = new Excel.Application();
+            xlWorkBook = xlApp.Workbooks.Open(txt_Path1.Text); //se abre primero el Excel con los programas
+            xlWorkSheet = xlWorkBook.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
 
 
+           //Excel variables puntos parte 2 del proceso (obtener datos de Verbindungen), pero debe ser abriendo otra ventana de excel 
 
-            ////aqui se llama a la funcion leer, y le pasamos la lista para que guarde los valores
-
-            //usedNames= readProgramm(); 
-
-           //Excel puntos parte 2 del proceso
-
-            xlApp_2 = new Excel.Application(); 
-            xlWorkBook_2 = xlApp_2.Workbooks.Open(txt_Path1.Text); //se abre primero el Excel con los programas
+            xlApp_2 = new Excel.Application();
+            xlWorkBook_2 = xlApp_2.Workbooks.Open(txt_Path3.Text); //se abre primero el Excel con los programas
             xlWorkSheet_2 = xlWorkBook_2.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
 
-            bool lengthOK;
-            int startColumn=2;
+            //Excel para exportar y guardar todos los datos. De primeras estará vacío.  
 
+
+            xlApp_3= new Excel.Application();
+            Excel.Workbook xlWorkBook_3 = this.xlApp_3.Workbooks.Add();
+            Excel.Worksheet xlWorkSheet_3 = xlWorkBook_3.Worksheets.Add();
+
+
+
+            int startColumn=1; //in Excel DateiSPS must be the first column. In opposite in the excel Verbinden must be the second column. 
+            int startColumn_2 = 4; 
             //Show message
+
+            
             txt_Status.Text = executing;
 
-            //Check if the length of the variable names is correct
-            lengthOK=checkLength();
-            //If the lengths are correct 
-            if(lengthOK)
-            {
-                //Look for "J1" or "RX" to see which process must be done
-               
-                    //Read all the joints and create the .lc file
-                    readWriteJ1J4J6(startColumn);
-                    //Show message
-                    txt_Status.Text = programmFinished;
-                
-              
-            }
-            //If the lengths are not correct
-            else
-            {
-                //Show error message
-                txt_Status.Text = programmStopped;
-            }
+            //Excel variable for the new file (Excel Verbindungen 2) 
 
-            //Close Excel file 1
-            //xlWorkBook.Close(false, misValue, misValue);
+            
+            //read the data from "SPSDatei". 
+
+            getinfoSPS(startColumn);
+
+
+            //read the second excel but only with the data from the SPS of the previous data. 
+
+            getinfoVerbindung(startColumn_2,informationSPs);
+
+            //guardamos los datos importantes en un solo excel. Ya teniamos creado de antes el nuevo libro excel donde exportamos las cosas
+
+
+            exportExcel();
+
+
+
+            //leemos la lista creada de SPSDatei. 
+
+
+            //importamos en el TIA con comandos de importar (AQUI ANADIR COSAS DEL OTRO PROGRAMA).
+
+
+
+            //creamos la correlación de datos entre el excel2 y las salidas de cada uno de los gerätes del programa. 
+
+
+
+            //Close Excel files (only when we read all the data) 
+
+                xlWorkBook.Close(false, misValue, misValue);
+                xlWorkBook_2.Close(false, misValue, misValue);
+
             //Close Excel app and release all
-            //xlApp.Quit();
-            //Marshal.ReleaseComObject(xlWorkSheet);
-            //Marshal.ReleaseComObject(xlWorkBook);
-            //Marshal.ReleaseComObject(xlApp);
+                xlApp.Quit();
+                xlApp_2.Quit();
 
-            //Close Excel file 2
-            xlWorkBook_2.Close(false, misValue, misValue);
-            //Close Excel app and release all
-            xlApp_2.Quit();
-            Marshal.ReleaseComObject(xlWorkSheet_2);
-            Marshal.ReleaseComObject(xlWorkBook_2);
-            Marshal.ReleaseComObject(xlApp_2);
+                Marshal.ReleaseComObject(xlWorkSheet);
+                Marshal.ReleaseComObject(xlWorkBook);
+                Marshal.ReleaseComObject(xlApp);
+                Marshal.ReleaseComObject(xlWorkSheet_2);
+                Marshal.ReleaseComObject(xlWorkBook_2);
+                Marshal.ReleaseComObject(xlApp_2);
 
+            //Show message
+            txt_Status.Text = programmFinished;
+           
 
         }
-        //Check the lengths of the variable names and create a list of the variables whose name is too long
-        private bool checkLength()
+        
+
+        private void getinfoSPS(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
         {
-            bool lengthOK=true;
-            bool finished = false;
-            string type;
-            string name;
-            string longNamesList="";
-            int line = 2;
-
-            do
-            {
-                //Read the type of data
-                type = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
-                //If it was an empty cell, the check process is over
-                if (String.IsNullOrEmpty(type))
-                {
-                    finished = true;
-                }
-                //If it had this text, it was a variable
-                else if (type == "PmViaLocationOperation")
-                {
-                    //Save the variable name
-                    name = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
-                    //Check if the length is more than 15 characters
-                    if (name.Length > 200)
-                    {
-                        //Deactivate the variable which indicates that the lengths were correct
-                        lengthOK=false;
-                        //Add the variable name to the list of variables whose name is too long
-                        longNamesList = longNamesList + name + "\n";
-                    }
-                }
-                //Increase the line of the Excel to be read
-                line++;
-
-            } while (!finished);
-            //If there was some incorrect length
-            if (!lengthOK)
-            {
-                //Show error message with all the names of the variables whose name is too long
-                MessageBox.Show(longNamesTextBeggin + longNamesList + longNamesTextEnd);
-            }
-            return lengthOK;
-        }
-
-        //Read all the programs of one model of a Robot
-        //private List<string>  readProgramm()
-        //{
-        //    int iCurrentLine=1; //inicalemnte es la primera linea 
-        //    string currentLine; //la primera linea 
-        //    bool finished=false;
-        //    string name;
-        //    int nameInit;
-        //    int nameFin;
-        //    int nameLen; //initial size
-        //    List <string> nameList= new List<string>(); //guardamos puntos que quiere el usuario. 
-
-        //    do
-        //    {
-        //        //Read the type of data
-        //        currentLine = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
-
-        //        //If it was an empty cell, the check process is over
-        //        if (String.IsNullOrEmpty(currentLine))
-        //        {
-        //            finished = true;
-        //        }
-        //        //If it had this text, it was a variable
-        //        else if (currentLine == "LMOVE")
-        //        {
-        //            //Save the variable name
-                     
-        //            name = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
-        //            nameLen = name.Length;
-
-        //            //Calculo tamano 
-        //            nameInit = name.IndexOf("#", 1, name.Length); //posicion de la linea que encontramos el simbolo de la posicion
-        //            nameFin = name.IndexOf(";", 1, name.Length); 
-                    
-        //            name= name.Remove(1,nameInit-1); //borramos LMOVE o JMOVE
-        //            name = name.Remove(nameFin, name.Length);
-
-        //            nameList.Add(name);
-        //        }
-
-        //        else if (currentLine == "JMOVE")
-        //        {
-        //            //Save the variable name
-
-        //            name = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
-        //            nameLen = name.Length;
-
-        //            //Calculo tamano 
-        //            nameInit = name.IndexOf("#", 1, name.Length); //posicion de la linea que encontramos el simbolo de la posicion
-        //            nameFin = name.IndexOf(";", 1, name.Length);
-
-        //            name = name.Remove(1, nameInit - 1); //borramos LMOVE o JMOVE
-        //            name = name.Remove(nameFin, name.Length);
-
-        //            nameList.Add(name);
-
-
-        //        }
-        //        //Increase the line of the Excel to be read
-        //        iCurrentLine++;
-
-        //    } while (!finished);
-
-        //    return nameList;
-        //}
-
-      
-
-
-        //Read J1, J4 und J6, change the value and create .lc file
-        private void readWriteJ1J4J6(int startColumn) //le pasamos la lista de los unicos puntos que interesan. 
-        {   
-            string name;
-            string baseName = "";
-            int j1Pos;
-            int j2Pos;
-            int j3Pos;
-            int j4Pos;
-            int j5Pos;
-            int j6Pos;
-            double j1;
-            double j2;
-            double j3;
-            double j4;
-            double j5;
-            double j6;
-
+            int cpuPPALES=0; //count the number of CPU with IP. 
+            string serialNum;
+            string eplanBemerk;
+            string IP;
+            string cpuPPAL;
+            string startAdresse;
+            string swAd;
+            string hwAd;
+            Dictionary<string, string> adresseSW_HW = new Dictionary<string, string>();       
             bool finished = false;
             //bool previousBase = false;
             int line = 2; //the first line ist 2 (the 1 ist only names)
-            string cellText = "";
-            string text = ".JOINTS\n";
-            string ceros = "0.000000 0.000000 0.000000";
+            string anzahlText = ""; //controlar si tenemos mas dispositivos relevantes del SPS o no. 
 
-            //Get the colums where the information of the joints is
-            j1Pos = startColumn; //Column where J1 data ist (es la numero 2)
-            j2Pos = j1Pos + 1;
-            j3Pos = j2Pos + 1;
-            j4Pos = j3Pos + 1;
-            j5Pos = j4Pos + 1;
-            j6Pos = j5Pos + 1;
+            
 
-            //Repeat the process until an empty cell is found
+            //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
                 try
-                {   
+                {
                     //Read from the Excel the name of the variable and the joints
 
-                    name = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
-
                     
-                        j1 = (double)(xlWorkSheet_2.Cells[line, j1Pos] as Excel.Range).Value;
-                        j2 = (double)(xlWorkSheet_2.Cells[line, j2Pos] as Excel.Range).Value;
-                        j3 = (double)(xlWorkSheet_2.Cells[line, j3Pos] as Excel.Range).Value;
-                        j4 = (double)(xlWorkSheet_2.Cells[line, j4Pos] as Excel.Range).Value;
-                        j5 = (double)(xlWorkSheet_2.Cells[line, j5Pos] as Excel.Range).Value;
-                        j6 = (double)(xlWorkSheet_2.Cells[line, j6Pos] as Excel.Range).Value;
-                        string addText =  name + " " + (-1) * j1 + " " + j2 + " " + j3 + " " + (-1) * j4 + " " + j5 + " " + (-1) * j6 + " " + ceros;
-                        
-                        //If the information to add is not repeated
 
-                        if (!text.Contains(addText))
+                    serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
+
+                    if(serialNum!= null)
+                    {
+                        //Save the easy data, because its only in each column of the excel
+
+                        eplanBemerk = (string)(xlWorkSheet.Cells[line, 4] as Excel.Range).Value;
+                        IP = (string)(xlWorkSheet.Cells[line, 10] as Excel.Range).Value;
+
+                            if(IP!= null)
+                            {
+                                cpuPPALES++; //we have other CPU that is central CPU.
+                            }
+
+                        cpuPPAL = (string)(xlWorkSheet.Cells[line, 11] as Excel.Range).Value;
+                        startAdresse = (string)(xlWorkSheet.Cells[line, 13] as Excel.Range).Value;
+
+                        //aqui declarar bucle que por cada linea de cada geraete me guarde en el diccionario <direccion SW, direccion HW>
+
+                        do
                         {
-                            //Add the information of the variable and joints to the .lc
-                            text = text + addText + "\n";
-                        }
-                    
+                            //Read the SWpin data
 
+                            int colRead=15; //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
+                            swAd = (string)(xlWorkSheet.Cells[line, colRead] as Excel.Range).Value;
+                            hwAd = (string)(xlWorkSheet.Cells[line, (colRead + 1)] as Excel.Range).Value;
+
+                            //If it was an empty cell, the check process for the SWAdresses is over
+
+                            if (String.IsNullOrEmpty(swAd) && String.IsNullOrEmpty(hwAd))
+                            {
+                                finished = true;
+                            }
+                            
+                            //Increase the line of the Excel to be read
+
+                            adresseSW_HW.Add(swAd,hwAd); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer. 
+                            line++;
+                            colRead = colRead + 2; //direccionamos por lineas de SW. 
+ 
+
+                        } while (!finished);
+
+                        InformationSPS informationSPS = new InformationSPS (serialNum, eplanBemerk, IP, cpuPPAL, startAdresse, adresseSW_HW);
+
+                        informationSPS.serialNum= serialNum;
+                        informationSPS.eplanBemerk = eplanBemerk;
+                        informationSPS.IP = IP;
+                        informationSPS.cpuPPAL= cpuPPAL;
+                        informationSPS.startAdresse= startAdresse;
+                        informationSPS.adresseSW_HW= adresseSW_HW; //keep all the dictionary of adresses. 
+
+                        informationSPs.Add(informationSPS); //add the first information for that serielnummer in the list of informationSPS. 
+
+
+                    }
+                    
 
                 }
-                //If the joints of the variable couldn´t be read->empty cell->name of a base
+                //If the column of the SPS-Typ is empty
                 catch
                 {
-                    //Get the name of the base or the name of the point
-                    cellText = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
-                    //If there was a previous base
-                    if (cellText== ".END")
+                    //Controll if there is more SPS Data
+                    
+                    anzahlText= (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value; 
+
+                    if(anzahlText == null)
                     {
-                        text = text.Replace(",", ".");
-                        text = text + ".END";
-
-                        string savePath;
-                        //If the path for the .lc file must be folder where the Excel is
-                        if (checkBox1.Checked)
-                        {
-                            //Get the path of the folder where the Excel is
-                            savePath = System.IO.Path.GetDirectoryName(txt_Path1.Text);
-                        }
-                        else
-                        {
-                            //Get the path that the user gave
-                            savePath = txt_Path2.Text;
-                        }
-
-                        //Create .lc file
-                        string exportName = baseName + "gespiegelt_JOINTS.lc"; //sollen wir wissen ob es gespiegelt
-                       
-                        string completePath = System.IO.Path.Combine(savePath, exportName);
-                        File.WriteAllText(completePath, text);
-
-                        //Prepare variable for the next .lc file
-                        text = ".JOINTS\n";
-
+                        finished=true; //there are no more SPS data. 
                     }
 
-                    ////State that there has been a base
-                    //previousBase = true;
-
-                    //Save the name of the base
-                    baseName = cellText;
-
-                    //If the cell is empty
-                    if (String.IsNullOrEmpty(cellText))
+                    else
                     {
-                        //Finish the process
-                        finished = true;
+                        line++; //read the next line
                     }
                 }
 
-                line++;
             } while (!finished);
         }
+      
+        private void getinfoVerbindung(int startColumn, List<InformationSPS> informationSPs)
+        {
+            int line = 2; 
+            string textDestination;
+            string textSource;
+            int newLine = 2;
+            bool finished=false;
 
-        //English selected
+
+           do {
+                //Repeat the process until an empty cell oof number of this geaete is found
+
+                textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn] as Excel.Range).Value;
+                textSource = (string)(xlWorkSheet_2.Cells[line, startColumn + 1] as Excel.Range).Value;
+
+                try
+                {
+                    //Read from the Excel the name of the variable and the joints
+
+                
+
+                    //informationSPS_2.eplanBemerk = textDestination; 
+
+                    if (textDestination != null && textSource != null)
+                    {
+
+                        //Look if there is a coincidence with the name of the device
+
+                        foreach (InformationSPS item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
+                        {
+                            xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1); //abrimos solo la primera hoja del nuevo excel.
+                            xlWorkSheet_3.Cells[1, 1] = "Source";
+                            xlWorkSheet_3.Cells[1, 2] = "Destination";
+
+
+
+
+                            if (item.eplanBemerk == textDestination || item.eplanBemerk == textSource) //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
+                                {
+
+                                    //sirve si tenemos un gerate de importancia (de importar en TIA) tanto si está en ziel como en destination
+
+                                    xlWorkSheet_3.Cells[newLine, 1].Value = textSource;
+                                    xlWorkSheet_3.Cells[newLine, 2].Value = textDestination;
+
+                                    newLine++; //the next we write in the next position. 
+
+                                }
+                        }
+
+
+                    }
+
+                }
+
+
+
+                 //If the column of the SPS-Typ is empty
+                catch
+                {
+
+                    //Controll if there is more SPS Data
+
+                    if (textDestination == null && textSource == null)
+                    {
+                            finished = true; //there are no more SPS data. 
+                    }
+
+                }
+
+                line++; //go to the next line in the 2nd Excel. 
+
+            } while (!finished);
+
+
+
+        }
+
+
+        //Export to excel
+        private void exportExcel ()
+        {
+            string path = txt_Path2.Text;
+            System.Windows.Forms.SaveFileDialog fichero = new System.Windows.Forms.SaveFileDialog();
+            fichero.Filter = "Excel (*.xls)|*.xls";
+            
+            if (Directory.Exists(path))
+            {
+                
+
+                    //este try es para capturar algun error al momento de intentar guardar el archivo
+
+                    xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
+                    xlWorkBook_3.Close(true);
+                    xlApp_3.Quit();
+         
+            }
+                
+                
+             else
+                {
+                    Directory.CreateDirectory(path);
+                    try
+                    {
+                        xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
+                        xlWorkBook_3.Close(true);
+                        xlApp_3.Quit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                   
+                }
+        }
+
+
+         //English selected
         private void btn_EN_Click(object sender, EventArgs e)
         {
             //If previous language was german
@@ -605,7 +665,7 @@ namespace EPLAN_TIA
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"*.as|*.pg";
+            dialog.Filter = @"*.xlsx|*.xls";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened
@@ -623,20 +683,20 @@ namespace EPLAN_TIA
             txt_Path2.Text = lcPath;
         }
 
-        //introducimos
-        //private void btn_Path3_Click(object sender, EventArgs e)
-        //{
-        //    //Open a File Dialog
-        //    var dialog = new VistaOpenFileDialog();
-        //    //Set filter to show only Excel files
-        //    dialog.Filter = @"*.xlsx|*.xlsx";
-        //    //Show Dialog
-        //    dialog.ShowDialog();
-        //    //Get the complete path of the Excel file to be opened
-        //    string excelPath_3 = dialog.FileName;
-        //    //Show path selected in the upper textbox
-        //    txt_Path3.Text = excelPath_3;
-        //}
+        
+        private void btn_Path3_Click(object sender, EventArgs e)
+        {
+            //Open a File Dialog
+            var dialog = new VistaOpenFileDialog();
+            //Set filter to show only Excel files
+            dialog.Filter = @"*.xlsx|*.xlsx";
+            //Show Dialog
+            dialog.ShowDialog();
+            //Get the complete path of the Excel file to be opened
+            string excelPath_3 = dialog.FileName;
+            //Show path selected in the upper textbox
+            txt_Path3.Text = excelPath_3;
+        }
 
         private void txt_Path_TextChanged(object sender, EventArgs e)
         {
@@ -694,32 +754,32 @@ namespace EPLAN_TIA
         }
       
         //aqui se introduce el backup completo de los programas de un modelo (M2) 
-        //private void txt_Path3_TextChanged(object sender, EventArgs e)
-        //{
-        //    //If txt_Path3 contains a valid path
-        //    if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.File.Exists(txt_Path3.Text))
-        //    {
-        //        label5.Text = "";
-        //        if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path1.Text))
-        //        {
-        //            //Enable button "Start"
-        //            btn_Start.Enabled = true;
-        //        }
+        private void txt_Path3_TextChanged(object sender, EventArgs e)
+        {
+            //If txt_Path3 contains a valid path
+            if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.File.Exists(txt_Path3.Text))
+            {
+                label5.Text = "";
+                if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path1.Text))
+                {
+                    //Enable button "Start"
+                    btn_Start.Enabled = true;
+                }
 
-        //    }
-        //    else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
-        //    {
-        //        label5.Text = invalidPath;
-        //        //Disable button "Start"
-        //        btn_Start.Enabled = false;
-        //    }
-        //    else
-        //    {
-        //        label5.Text = "";
-        //        //Disable button "Start"
-        //        btn_Start.Enabled = false;
-        //    }
-        //}
+            }
+            else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
+            {
+                label5.Text = invalidPath;
+                //Disable button "Start"
+                btn_Start.Enabled = false;
+            }
+            else
+            {
+                label5.Text = "";
+                //Disable button "Start"
+                btn_Start.Enabled = false;
+            }
+        }
 
         //sirve para chequear si queremos guardarlo como un .excel o bien .lc, 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
