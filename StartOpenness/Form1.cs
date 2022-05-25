@@ -8,16 +8,21 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+using Microsoft.Office.Interop.Excel; 
 
 namespace StartOpenness
 {
     public partial class Form1 : Form
     {
         //Excel variables
-        Excel._Application xlApp; //Asi llamamos al tipo de formato que me viene con el excel. 
+        Excel._Application xlApp; //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel._Application xlApp_2; //Asi llamamos al tipo de formato que me viene con el excel.
         object misValue = System.Reflection.Missing.Value;
         Excel.Workbook xlWorkBook;
         Excel.Worksheet xlWorkSheet;
+        Excel.Workbook xlWorkBook_2;
+        Excel.Worksheet xlWorkSheet_2;
+
 
         //Language selected (English by default)
         string languageSelected = "EN";
@@ -81,6 +86,9 @@ namespace StartOpenness
         string statusDE = "Status";
         string invalidPathDE = "Ungültiger Pfad";
 
+        //Datos relevantes 
+
+        //List<string> usedNames = new List<string>();
        
         public Form1()
         {
@@ -89,6 +97,16 @@ namespace StartOpenness
         }
 
 
+        public class InformationSPS
+        {
+            string serialNum;
+            string eplanBemerk;
+            string IP; //quizas luego tengo que ponerlo modo INT 
+            string cpuPPAL; //a que CPU esta conectada
+            string startAdresse; //start adresse de la tarjeta
+            Dictionary<string,string> adresseSW_HW; //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
+            
+        }
 
         //Load form
         private void Form1_Load(object sender, EventArgs e)
@@ -99,13 +117,27 @@ namespace StartOpenness
             languageEN();
 
         }
+       
         //Start the process
         private void btn_Start_Click(object sender, EventArgs e)
         {
-            //Excel variables
-            xlApp = new Excel.Application();
-            xlWorkBook = xlApp.Workbooks.Open(txt_Path1.Text);
-            xlWorkSheet = xlWorkBook.Worksheets.get_Item(1);
+            //Excel variables parte 1 del proceso
+
+            //xlApp = new Excel.Application();
+            //xlWorkBook = xlApp.Workbooks.Open(txt_Path3.Text); //se abre primero el Excel con los programas
+            //xlWorkSheet = xlWorkBook.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
+
+
+
+            ////aqui se llama a la funcion leer, y le pasamos la lista para que guarde los valores
+
+            //usedNames= readProgramm(); 
+
+           //Excel puntos parte 2 del proceso
+
+            xlApp_2 = new Excel.Application(); 
+            xlWorkBook_2 = xlApp_2.Workbooks.Open(txt_Path1.Text); //se abre primero el Excel con los programas
+            xlWorkSheet_2 = xlWorkBook_2.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
 
             bool lengthOK;
             int startColumn=2;
@@ -134,13 +166,22 @@ namespace StartOpenness
                 txt_Status.Text = programmStopped;
             }
 
-            //Close Excel file
-            xlWorkBook.Close(false, misValue, misValue);
+            //Close Excel file 1
+            //xlWorkBook.Close(false, misValue, misValue);
             //Close Excel app and release all
-            xlApp.Quit();
-            Marshal.ReleaseComObject(xlWorkSheet);
-            Marshal.ReleaseComObject(xlWorkBook);
-            Marshal.ReleaseComObject(xlApp);
+            //xlApp.Quit();
+            //Marshal.ReleaseComObject(xlWorkSheet);
+            //Marshal.ReleaseComObject(xlWorkBook);
+            //Marshal.ReleaseComObject(xlApp);
+
+            //Close Excel file 2
+            xlWorkBook_2.Close(false, misValue, misValue);
+            //Close Excel app and release all
+            xlApp_2.Quit();
+            Marshal.ReleaseComObject(xlWorkSheet_2);
+            Marshal.ReleaseComObject(xlWorkBook_2);
+            Marshal.ReleaseComObject(xlApp_2);
+
 
         }
         //Check the lengths of the variable names and create a list of the variables whose name is too long
@@ -156,7 +197,7 @@ namespace StartOpenness
             do
             {
                 //Read the type of data
-                type = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
+                type = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
                 //If it was an empty cell, the check process is over
                 if (String.IsNullOrEmpty(type))
                 {
@@ -166,9 +207,9 @@ namespace StartOpenness
                 else if (type == "PmViaLocationOperation")
                 {
                     //Save the variable name
-                    name = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
+                    name = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
                     //Check if the length is more than 15 characters
-                    if (name.Length > 15)
+                    if (name.Length > 200)
                     {
                         //Deactivate the variable which indicates that the lengths were correct
                         lengthOK=false;
@@ -188,9 +229,79 @@ namespace StartOpenness
             }
             return lengthOK;
         }
+
+        //Read all the programs of one model of a Robot
+        //private List<string>  readProgramm()
+        //{
+        //    int iCurrentLine=1; //inicalemnte es la primera linea 
+        //    string currentLine; //la primera linea 
+        //    bool finished=false;
+        //    string name;
+        //    int nameInit;
+        //    int nameFin;
+        //    int nameLen; //initial size
+        //    List <string> nameList= new List<string>(); //guardamos puntos que quiere el usuario. 
+
+        //    do
+        //    {
+        //        //Read the type of data
+        //        currentLine = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
+
+        //        //If it was an empty cell, the check process is over
+        //        if (String.IsNullOrEmpty(currentLine))
+        //        {
+        //            finished = true;
+        //        }
+        //        //If it had this text, it was a variable
+        //        else if (currentLine == "LMOVE")
+        //        {
+        //            //Save the variable name
+                     
+        //            name = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
+        //            nameLen = name.Length;
+
+        //            //Calculo tamano 
+        //            nameInit = name.IndexOf("#", 1, name.Length); //posicion de la linea que encontramos el simbolo de la posicion
+        //            nameFin = name.IndexOf(";", 1, name.Length); 
+                    
+        //            name= name.Remove(1,nameInit-1); //borramos LMOVE o JMOVE
+        //            name = name.Remove(nameFin, name.Length);
+
+        //            nameList.Add(name);
+        //        }
+
+        //        else if (currentLine == "JMOVE")
+        //        {
+        //            //Save the variable name
+
+        //            name = (string)(xlWorkSheet.Cells[iCurrentLine, 1] as Excel.Range).Value;
+        //            nameLen = name.Length;
+
+        //            //Calculo tamano 
+        //            nameInit = name.IndexOf("#", 1, name.Length); //posicion de la linea que encontramos el simbolo de la posicion
+        //            nameFin = name.IndexOf(";", 1, name.Length);
+
+        //            name = name.Remove(1, nameInit - 1); //borramos LMOVE o JMOVE
+        //            name = name.Remove(nameFin, name.Length);
+
+        //            nameList.Add(name);
+
+
+        //        }
+        //        //Increase the line of the Excel to be read
+        //        iCurrentLine++;
+
+        //    } while (!finished);
+
+        //    return nameList;
+        //}
+
+      
+
+
         //Read J1, J4 und J6, change the value and create .lc file
-        private void readWriteJ1J4J6(int startColumn)
-        {
+        private void readWriteJ1J4J6(int startColumn) //le pasamos la lista de los unicos puntos que interesan. 
+        {   
             string name;
             string baseName = "";
             int j1Pos;
@@ -225,24 +336,28 @@ namespace StartOpenness
             do
             {
                 try
-                {
+                {   
                     //Read from the Excel the name of the variable and the joints
-                    name = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
-                    j1 = (double)(xlWorkSheet.Cells[line, j1Pos] as Excel.Range).Value;
-                    j2 = (double)(xlWorkSheet.Cells[line, j2Pos] as Excel.Range).Value;
-                    j3 = (double)(xlWorkSheet.Cells[line, j3Pos] as Excel.Range).Value;
-                    j4 = (double)(xlWorkSheet.Cells[line, j4Pos] as Excel.Range).Value;
-                    j5 = (double)(xlWorkSheet.Cells[line, j5Pos] as Excel.Range).Value;
-                    j6 = (double)(xlWorkSheet.Cells[line, j6Pos] as Excel.Range).Value;
 
-                    string addText = "#" + name + " " + (-1)*j1 + " " + j2 + " " + j3 + " " + (-1) * j4 + " " + j5 + " " + (-1) * j6 + " " + ceros;
+                    name = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
 
-                    //If the information to add is not repeated
-                    if (!text.Contains(addText))
-                    {
-                        //Add the information of the variable and joints to the .lc
-                        text = text + addText + "\n";
-                    }
+                    
+                        j1 = (double)(xlWorkSheet_2.Cells[line, j1Pos] as Excel.Range).Value;
+                        j2 = (double)(xlWorkSheet_2.Cells[line, j2Pos] as Excel.Range).Value;
+                        j3 = (double)(xlWorkSheet_2.Cells[line, j3Pos] as Excel.Range).Value;
+                        j4 = (double)(xlWorkSheet_2.Cells[line, j4Pos] as Excel.Range).Value;
+                        j5 = (double)(xlWorkSheet_2.Cells[line, j5Pos] as Excel.Range).Value;
+                        j6 = (double)(xlWorkSheet_2.Cells[line, j6Pos] as Excel.Range).Value;
+                        string addText =  name + " " + (-1) * j1 + " " + j2 + " " + j3 + " " + (-1) * j4 + " " + j5 + " " + (-1) * j6 + " " + ceros;
+                        
+                        //If the information to add is not repeated
+
+                        if (!text.Contains(addText))
+                        {
+                            //Add the information of the variable and joints to the .lc
+                            text = text + addText + "\n";
+                        }
+                    
 
 
                 }
@@ -250,7 +365,7 @@ namespace StartOpenness
                 catch
                 {
                     //Get the name of the base or the name of the point
-                    cellText = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
+                    cellText = (string)(xlWorkSheet_2.Cells[line, 1] as Excel.Range).Value;
                     //If there was a previous base
                     if (cellText== ".END")
                     {
@@ -271,7 +386,7 @@ namespace StartOpenness
                         }
 
                         //Create .lc file
-                        string exportName = baseName + "_JOINTS.lc";
+                        string exportName = baseName + "gespiegelt_JOINTS.lc"; //sollen wir wissen ob es gespiegelt
                        
                         string completePath = System.IO.Path.Combine(savePath, exportName);
                         File.WriteAllText(completePath, text);
@@ -490,13 +605,13 @@ namespace StartOpenness
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"*.xlsx|*.xlsx";
+            dialog.Filter = @"*.as|*.pg";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened
-            string excelPath = dialog.FileName;
+            string excelPath_1 = dialog.FileName;
             //Show path selected in the upper textbox
-            txt_Path1.Text = excelPath;
+            txt_Path1.Text = excelPath_1;
         }
 
         private void btn_Path2_Click(object sender, EventArgs e)
@@ -508,6 +623,20 @@ namespace StartOpenness
             txt_Path2.Text = lcPath;
         }
 
+        //introducimos
+        //private void btn_Path3_Click(object sender, EventArgs e)
+        //{
+        //    //Open a File Dialog
+        //    var dialog = new VistaOpenFileDialog();
+        //    //Set filter to show only Excel files
+        //    dialog.Filter = @"*.xlsx|*.xlsx";
+        //    //Show Dialog
+        //    dialog.ShowDialog();
+        //    //Get the complete path of the Excel file to be opened
+        //    string excelPath_3 = dialog.FileName;
+        //    //Show path selected in the upper textbox
+        //    txt_Path3.Text = excelPath_3;
+        //}
 
         private void txt_Path_TextChanged(object sender, EventArgs e)
         {
@@ -535,6 +664,8 @@ namespace StartOpenness
                 btn_Start.Enabled = false;
             }
         }
+
+        //aqui se introduce donde se quiere exportar el formato de los datos
         private void txt_Path2_TextChanged(object sender, EventArgs e)
         {
             //If txt_Path1 contains a valid path
@@ -561,6 +692,36 @@ namespace StartOpenness
                 btn_Start.Enabled = false;
             }
         }
+      
+        //aqui se introduce el backup completo de los programas de un modelo (M2) 
+        //private void txt_Path3_TextChanged(object sender, EventArgs e)
+        //{
+        //    //If txt_Path3 contains a valid path
+        //    if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.File.Exists(txt_Path3.Text))
+        //    {
+        //        label5.Text = "";
+        //        if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path1.Text))
+        //        {
+        //            //Enable button "Start"
+        //            btn_Start.Enabled = true;
+        //        }
+
+        //    }
+        //    else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
+        //    {
+        //        label5.Text = invalidPath;
+        //        //Disable button "Start"
+        //        btn_Start.Enabled = false;
+        //    }
+        //    else
+        //    {
+        //        label5.Text = "";
+        //        //Disable button "Start"
+        //        btn_Start.Enabled = false;
+        //    }
+        //}
+
+        //sirve para chequear si queremos guardarlo como un .excel o bien .lc, 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             //If the path for the .lc file is the folder where the Excel is
@@ -571,7 +732,7 @@ namespace StartOpenness
                 btn_Path2.Enabled = false;
                 label5.Enabled = false;
                 //If there is a valid path to an Excel
-                if(!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
+                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
                 {
                     //Enable button to start the process
                     btn_Start.Enabled = true;
@@ -598,6 +759,9 @@ namespace StartOpenness
             }
         }
 
+        private void btn_Path3_Click(object sender, EventArgs e)
+        {
 
+        }
     }
 }
