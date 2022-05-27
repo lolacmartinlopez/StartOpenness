@@ -11,6 +11,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Interop.Excel;
 using System.Linq;
 
+
 namespace EPLAN_TIA
 {
     public partial class Form1 : Form
@@ -23,18 +24,18 @@ namespace EPLAN_TIA
         object misValue = System.Reflection.Missing.Value;
 
         //SPSData
-        Excel.Workbook xlWorkBook;
-        Excel.Worksheet xlWorkSheet;
+        Excel.Workbook xlWorkBook = null;
+        Excel.Worksheet xlWorkSheet = null;
 
         //SPS Verbindungen
 
-        Excel.Workbook xlWorkBook_2;
-        Excel.Worksheet xlWorkSheet_2;
+        Excel.Workbook xlWorkBook_2=null;
+        Excel.Worksheet xlWorkSheet_2=null;
 
         //SPS neue Verbindungen
 
-        Excel.Workbook xlWorkBook_3;
-        Excel.Worksheet xlWorkSheet_3;
+        Excel.Workbook xlWorkBook_3=null;
+        Excel.Worksheet xlWorkSheet_3 = null;
 
         //Variables para exportar 
 
@@ -203,13 +204,17 @@ namespace EPLAN_TIA
 
             getinfoSPS(startColumn);
 
+            txt_Status.Text = "The information of the Excel SPS Datei was correct readed";
 
             //read the second excel but only with the data from the SPS of the previous data. 
 
             getinfoVerbindung(startColumn_2,informationSPs);
 
+            txt_Status.Text = "The information of the Excel SPS Verbindungen was correct readed";
+
             //guardamos los datos importantes en un solo excel. Ya teniamos creado de antes el nuevo libro excel donde exportamos las cosas
 
+            txt_Status.Text = "Exporting information to the new Excel";
 
             exportExcel();
 
@@ -230,10 +235,12 @@ namespace EPLAN_TIA
 
                 xlWorkBook.Close(false, misValue, misValue);
                 xlWorkBook_2.Close(false, misValue, misValue);
+                xlWorkBook_3.Close(false, misValue, misValue);
 
             //Close Excel app and release all
                 xlApp.Quit();
                 xlApp_2.Quit();
+                xlApp_3.Quit();
 
                 Marshal.ReleaseComObject(xlWorkSheet);
                 Marshal.ReleaseComObject(xlWorkBook);
@@ -249,7 +256,7 @@ namespace EPLAN_TIA
         }
         
 
-        private void getinfoSPS(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
+        public void getinfoSPS(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
         {
             int cpuPPALES=0; //count the number of CPU with IP. 
             string serialNum;
@@ -261,24 +268,24 @@ namespace EPLAN_TIA
             string hwAd;
             Dictionary<string, string> adresseSW_HW = new Dictionary<string, string>();       
             bool finished = false;
-            //bool previousBase = false;
             int line = 2; //the first line ist 2 (the 1 ist only names)
-            string anzahlText = ""; //controlar si tenemos mas dispositivos relevantes del SPS o no. 
+            string anzahlText; //controlar si tenemos mas dispositivos relevantes del SPS o no. 
+            int colRead = 15; //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
 
-            
 
             //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
-                try
-                {
-                    //Read from the Excel the name of the variable and the joints
+                //try
+                //{
+                    //Read from the Excel the name of the serial number and the total number of each 
 
                     
 
                     serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
+                    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
 
-                    if(serialNum!= null)
+                    if (serialNum!= null) //Si es un geräte util de importar en TIA
                     {
                         //Save the easy data, because its only in each column of the excel
 
@@ -299,7 +306,7 @@ namespace EPLAN_TIA
                         {
                             //Read the SWpin data
 
-                            int colRead=15; //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
+                            
                             swAd = (string)(xlWorkSheet.Cells[line, colRead] as Excel.Range).Value;
                             hwAd = (string)(xlWorkSheet.Cells[line, (colRead + 1)] as Excel.Range).Value;
 
@@ -308,13 +315,16 @@ namespace EPLAN_TIA
                             if (String.IsNullOrEmpty(swAd) && String.IsNullOrEmpty(hwAd))
                             {
                                 finished = true;
+                                colRead = 15; //reset for the next iteration
                             }
                             
-                            //Increase the line of the Excel to be read
-
-                            adresseSW_HW.Add(swAd,hwAd); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer. 
-                            line++;
-                            colRead = colRead + 2; //direccionamos por lineas de SW. 
+                            else
+                            {
+                                adresseSW_HW.Add(swAd, hwAd); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer. 
+                                //line++;
+                                colRead = colRead + 2; //direccionamos por lineas de SW.
+                            }
+                             
  
 
                         } while (!finished);
@@ -332,31 +342,47 @@ namespace EPLAN_TIA
 
 
                     }
+
+                
+                    else if (anzahlText ==null && serialNum == null)
+                    {
+                        finished=true;
+                        line = 2; //reset the value
+                        txt_Status.Text = " No more data to read in SPS Datei";
+                    }
                     
 
-                }
+                //}
                 //If the column of the SPS-Typ is empty
-                catch
+                //catch
+                //{
+                //    //Controll if there is more SPS Data
+
+                //    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
+
+                //    if (anzahlText ==null)
+                //    {
+                //        finished=true; //there are no more SPS data. 
+                //    }
+
+                //    else
+                //    {
+                //        line++; //read the next line
+                //    }
+                //}
+
+                
+                else
                 {
-                    //Controll if there is more SPS Data
-                    
-                    anzahlText= (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value; 
-
-                    if(anzahlText == null)
-                    {
-                        finished=true; //there are no more SPS data. 
-                    }
-
-                    else
-                    {
-                        line++; //read the next line
-                    }
+                    line++;
                 }
+
+                txt_Status.Text = " Reading the data of the SPS";
 
             } while (!finished);
         }
       
-        private void getinfoVerbindung(int startColumn, List<InformationSPS> informationSPs)
+        public void getinfoVerbindung(int startColumn, List<InformationSPS> informationSPs)
         {
             int line = 2; 
             string textDestination;
@@ -371,8 +397,7 @@ namespace EPLAN_TIA
                 textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn] as Excel.Range).Value;
                 textSource = (string)(xlWorkSheet_2.Cells[line, startColumn + 1] as Excel.Range).Value;
 
-                try
-                {
+                
                     //Read from the Excel the name of the variable and the joints
 
                 
@@ -409,68 +434,73 @@ namespace EPLAN_TIA
 
                     }
 
-                }
+                
 
 
 
                  //If the column of the SPS-Typ is empty
-                catch
-                {
+               
 
                     //Controll if there is more SPS Data
 
-                    if (textDestination == null && textSource == null)
+                    else if (textDestination == null && textSource == null)
                     {
                             finished = true; //there are no more SPS data. 
+                            line = 2; //reset value
+                            newLine = 2; //reset value
+
                     }
 
-                }
-
-                line++; //go to the next line in the 2nd Excel. 
+                    else
+                    {
+                        line++; //go to the next line in the 2nd Excel.
+                    }
 
             } while (!finished);
-
-
 
         }
 
 
         //Export to excel
-        private void exportExcel ()
+        public void exportExcel ()
         {
-            string path = txt_Path2.Text;
-            System.Windows.Forms.SaveFileDialog fichero = new System.Windows.Forms.SaveFileDialog();
-            fichero.Filter = "Excel (*.xls)|*.xls";
-            
-            if (Directory.Exists(path))
-            {
-                
+            string path =txt_Path2.Text;
+            string nameWork= "SPS_neueVerbindungen.xlsx";
+            string Filename = @""+ path + @"\"+nameWork;
 
-                    //este try es para capturar algun error al momento de intentar guardar el archivo
+            //if (Directory.Exists(path))
+            //{
 
-                    xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
-                    xlWorkBook_3.Close(true);
-                    xlApp_3.Quit();
-         
-            }
+
+            //este try es para capturar algun error al momento de intentar guardar el archivo
+
+            //xlWorkBook_3.SaveAs(Filename, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
+            //xlWorkBook_3.CustomDocumentProperties();
+            xlWorkBook_3.SaveAs(Filename);
+            xlWorkBook_3.Close(true);
+            xlApp_3.Quit();
+                    
+            //}
                 
                 
-             else
-                {
-                    Directory.CreateDirectory(path);
-                    try
-                    {
-                        xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
-                        xlWorkBook_3.Close(true);
-                        xlApp_3.Quit();
-                    }
+             //else
+             //   {
+             //       string pathCreate = txt_Path2.Text;
+             //       Directory.CreateDirectory(pathCreate);
+                    
+             //       try
+             //       {   
+             //           xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
+             //           xlWorkBook_3.Close(true);
+             //           xlApp_3.Quit();
+             //       }
 
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+             //       catch (Exception ex)
+             //       {
+             //           MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+             //       }
                    
-                }
+             //   }
         }
 
 
@@ -665,7 +695,7 @@ namespace EPLAN_TIA
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"*.xlsx|*.xls";
+            dialog.Filter = @"*.xlsx|*.xlsx";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened
@@ -678,9 +708,9 @@ namespace EPLAN_TIA
         {
             VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog();
             dialog.ShowDialog();
-            string lcPath = dialog.SelectedPath.ToString();
+            string excelPath_2 = dialog.SelectedPath.ToString();
             //Show selected path
-            txt_Path2.Text = lcPath;
+            txt_Path2.Text = excelPath_2;
         }
 
         
@@ -725,14 +755,14 @@ namespace EPLAN_TIA
             }
         }
 
-        //aqui se introduce donde se quiere exportar el formato de los datos
+        //aqui se introduce donde se quiere exportar el formato de los datos (Path)
         private void txt_Path2_TextChanged(object sender, EventArgs e)
         {
-            //If txt_Path1 contains a valid path
+            //If txt_Path2 and txt_Path1 contains a valid path
             if (!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text))
             {
                 label5.Text = "";
-                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
+                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text)&& !String.IsNullOrEmpty(txt_Path3.Text) && System.IO.File.Exists(txt_Path3.Text))
                 {
                     //Enable button "Start"
                     btn_Start.Enabled = true;
@@ -742,6 +772,12 @@ namespace EPLAN_TIA
             else if (!String.IsNullOrEmpty(txt_Path2.Text) && !System.IO.Directory.Exists(txt_Path2.Text))
             {
                 label5.Text = invalidPath;
+                //Disable button "Start"
+                btn_Start.Enabled = false;
+            }
+            else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
+            {
+                label4.Text = invalidPath;
                 //Disable button "Start"
                 btn_Start.Enabled = false;
             }
@@ -756,11 +792,11 @@ namespace EPLAN_TIA
         //aqui se introduce el backup completo de los programas de un modelo (M2) 
         private void txt_Path3_TextChanged(object sender, EventArgs e)
         {
-            //If txt_Path3 contains a valid path
-            if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.File.Exists(txt_Path3.Text))
+            //If txt_Path1 contains a valid path
+            if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path3.Text))
             {
-                label5.Text = "";
-                if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path1.Text))
+                label4.Text = "";
+                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
                 {
                     //Enable button "Start"
                     btn_Start.Enabled = true;
@@ -769,13 +805,13 @@ namespace EPLAN_TIA
             }
             else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
             {
-                label5.Text = invalidPath;
+                label4.Text = invalidPath;
                 //Disable button "Start"
                 btn_Start.Enabled = false;
             }
             else
             {
-                label5.Text = "";
+                label4.Text = "";
                 //Disable button "Start"
                 btn_Start.Enabled = false;
             }

@@ -45,6 +45,8 @@ namespace EPLAN_TIA
             this.version = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.btn_Path2 = new System.Windows.Forms.Button();
+            this.btn_Path3 = new System.Windows.Forms.Button();
             this.txt_Path3 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -62,8 +64,7 @@ namespace EPLAN_TIA
             this.button_Maximize = new System.Windows.Forms.Button();
             this.button_Exit = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.btn_Path3 = new System.Windows.Forms.Button();
-            this.btn_Path2 = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -71,9 +72,18 @@ namespace EPLAN_TIA
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new System.Drawing.Point(36, 200);
+            label2.Name = "label2";
+            label2.Size = new System.Drawing.Size(158, 13);
+            label2.TabIndex = 44;
+            label2.Text = "Select folder to save the Project";
+            // 
             // txt_Status
             // 
-            this.txt_Status.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txt_Status.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txt_Status.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(228)))), ((int)(((byte)(229)))), ((int)(((byte)(230)))));
             this.txt_Status.BorderStyle = System.Windows.Forms.BorderStyle.None;
@@ -100,7 +110,7 @@ namespace EPLAN_TIA
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(228)))), ((int)(((byte)(229)))), ((int)(((byte)(230)))));
             this.panel1.Controls.Add(this.txtStatusLabel);
@@ -149,10 +159,11 @@ namespace EPLAN_TIA
             // 
             // panel2
             // 
-            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.Color.White;
+            this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.btn_Path2);
             this.panel2.Controls.Add(this.btn_Path3);
             this.panel2.Controls.Add(label2);
@@ -171,6 +182,32 @@ namespace EPLAN_TIA
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(431, 366);
             this.panel2.TabIndex = 26;
+            // 
+            // btn_Path2
+            // 
+            this.btn_Path2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
+            this.btn_Path2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_Path2.ForeColor = System.Drawing.Color.White;
+            this.btn_Path2.Location = new System.Drawing.Point(311, 254);
+            this.btn_Path2.Name = "btn_Path2";
+            this.btn_Path2.Size = new System.Drawing.Size(89, 30);
+            this.btn_Path2.TabIndex = 46;
+            this.btn_Path2.Text = "Browse";
+            this.btn_Path2.UseVisualStyleBackColor = false;
+            this.btn_Path2.Click += new System.EventHandler(this.btn_Path2_Click);
+            // 
+            // btn_Path3
+            // 
+            this.btn_Path3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
+            this.btn_Path3.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_Path3.ForeColor = System.Drawing.Color.White;
+            this.btn_Path3.Location = new System.Drawing.Point(310, 183);
+            this.btn_Path3.Name = "btn_Path3";
+            this.btn_Path3.Size = new System.Drawing.Size(89, 30);
+            this.btn_Path3.TabIndex = 45;
+            this.btn_Path3.Text = "Browse";
+            this.btn_Path3.UseVisualStyleBackColor = false;
+            this.btn_Path3.Click += new System.EventHandler(this.btn_Path3_Click);
             // 
             // txt_Path3
             // 
@@ -269,7 +306,7 @@ namespace EPLAN_TIA
             // 
             // panel3
             // 
-            this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.panel3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(215)))), ((int)(((byte)(25)))), ((int)(((byte)(70)))));
             this.panel3.Controls.Add(this.btn_DE);
@@ -394,38 +431,14 @@ namespace EPLAN_TIA
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
-            // label2
+            // label4
             // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(36, 200);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(158, 13);
-            label2.TabIndex = 44;
-            label2.Text = "Select folder to save the Project";
-            // 
-            // btn_Path3
-            // 
-            this.btn_Path3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
-            this.btn_Path3.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_Path3.ForeColor = System.Drawing.Color.White;
-            this.btn_Path3.Location = new System.Drawing.Point(310, 183);
-            this.btn_Path3.Name = "btn_Path3";
-            this.btn_Path3.Size = new System.Drawing.Size(89, 30);
-            this.btn_Path3.TabIndex = 45;
-            this.btn_Path3.Text = "Browse";
-            this.btn_Path3.UseVisualStyleBackColor = false;
-            // 
-            // btn_Path2
-            // 
-            this.btn_Path2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
-            this.btn_Path2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btn_Path2.ForeColor = System.Drawing.Color.White;
-            this.btn_Path2.Location = new System.Drawing.Point(311, 254);
-            this.btn_Path2.Name = "btn_Path2";
-            this.btn_Path2.Size = new System.Drawing.Size(89, 30);
-            this.btn_Path2.TabIndex = 46;
-            this.btn_Path2.Text = "Browse";
-            this.btn_Path2.UseVisualStyleBackColor = false;
+            this.label4.AutoSize = true;
+            this.label4.ForeColor = System.Drawing.Color.Red;
+            this.label4.Location = new System.Drawing.Point(39, 184);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(0, 13);
+            this.label4.TabIndex = 47;
             // 
             // Form1
             // 
@@ -482,6 +495,7 @@ namespace EPLAN_TIA
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btn_Path2;
         private System.Windows.Forms.Button btn_Path3;
+        private System.Windows.Forms.Label label4;
     }
 }
 
