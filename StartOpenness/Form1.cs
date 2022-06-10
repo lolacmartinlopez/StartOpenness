@@ -17,29 +17,32 @@ namespace EPLAN_TIA
     public partial class Form1 : Form
     {
         //Excel variables
-        Excel._Application xlApp; //Asi llamamos al tipo de formato que me viene con el excel.
-        Excel._Application xlApp_2; //Asi llamamos al tipo de formato que me viene con el excel.
-        Excel._Application xlApp_3; //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
+        //Excel excel = new Excel()
+
+        Excel.Application  xlApp= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel.Application  xlApp_2= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel.Application xlApp_3= new Excel.Application(); //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
 
         object misValue = System.Reflection.Missing.Value;
 
         //SPSData
-        Excel.Workbook xlWorkBook = null;
-        Excel.Worksheet xlWorkSheet = null;
+        
+        Excel.Workbook xlWorkBook ;
+        Excel.Worksheet xlWorkSheet ;
 
         //SPS Verbindungen
 
-        Excel.Workbook xlWorkBook_2=null;
-        Excel.Worksheet xlWorkSheet_2=null;
+        Excel.Workbook xlWorkBook_2;
+        Excel.Worksheet xlWorkSheet_2;
 
         //SPS neue Verbindungen
 
-        Excel.Workbook xlWorkBook_3=null;
-        Excel.Worksheet xlWorkSheet_3 = null;
+        Excel.Workbook xlWorkBook_3;
+        Excel.Worksheet xlWorkSheet_3;
 
         //Variables para exportar 
 
-    
+
         //Language selected (English by default)
         string languageSelected = "EN";
 
@@ -121,9 +124,9 @@ namespace EPLAN_TIA
             public string IP { get; set; }                                 //quizas luego tengo que ponerlo modo INT 
             public string cpuPPAL { get; set; }                           //a que CPU esta conectada
             public string startAdresse { get; set; }                     //start adresse de la tarjeta
-            public Dictionary<string,string> adresseSW_HW { get; set; } //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
+            public List<SW_HW> adresseSW_HW = new List<SW_HW>(); //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
             
-            public InformationSPS (string serianum, string eplanbemerk, string ip, string cpuppal, string startadress, Dictionary<string, string> adresse_sw_hw)
+            public InformationSPS (string serianum, string eplanbemerk, string ip, string cpuppal, string startadress, List <SW_HW> adresse_sw_hw)
             {
                 serialNum = serianum;
                 eplanBemerk = eplanbemerk;
@@ -150,6 +153,18 @@ namespace EPLAN_TIA
             }
         }
 
+        public class SW_HW
+        {
+            public string swAd { get; set; }
+            public string hwAd { get; set; }
+
+            public SW_HW (string swad, string hwad)
+            {
+                swAd = swad;  //keep the values of the software (adress) 
+                hwAd = hwad;    //keep the values of the hardware (adress)
+            }
+
+        }
         //Ejemplo de como guardar la informacion. 
         //verbindungenEPLAN lineSPS= new verbindungenEPLAN(); aqui le deberiamos de darle los datos que tengamos en las lineas. 
 
@@ -170,7 +185,9 @@ namespace EPLAN_TIA
         {
             //Excel variables parte 1 del proceso (obtener datos del SPS)
 
-            xlApp = new Excel.Application();
+
+
+            xlApp = new Excel.Application(); 
             xlWorkBook = xlApp.Workbooks.Open(txt_Path1.Text); //se abre primero el Excel con los programas
             xlWorkSheet = xlWorkBook.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
 
@@ -231,25 +248,26 @@ namespace EPLAN_TIA
 
 
 
-            //Close Excel files (only when we read all the data) 
+            ////Close Excel files (only when we read all the data) 
 
-                xlWorkBook.Close(false, misValue, misValue);
-                xlWorkBook_2.Close(false, misValue, misValue);
-                xlWorkBook_3.Close(false, misValue, misValue);
+            //    xlWorkBook.Close(false, misValue, misValue);
+            //    xlWorkBook_2.Close(false, misValue, misValue);
+            //    xlWorkBook_3.Close(false, misValue, misValue);
 
-            //Close Excel app and release all
-                xlApp.Quit();
-                xlApp_2.Quit();
-                xlApp_3.Quit();
+            ////Close Excel app and release all
+            //    xlApp.Quit();
+            //    xlApp_2.Quit();
+            //    xlApp_3.Quit();
 
-                Marshal.ReleaseComObject(xlWorkSheet);
-                Marshal.ReleaseComObject(xlWorkBook);
-                Marshal.ReleaseComObject(xlApp);
-                Marshal.ReleaseComObject(xlWorkSheet_2);
-                Marshal.ReleaseComObject(xlWorkBook_2);
-                Marshal.ReleaseComObject(xlApp_2);
+            //    Marshal.ReleaseComObject(xlWorkSheet);
+            //    Marshal.ReleaseComObject(xlWorkBook);
+            //    Marshal.ReleaseComObject(xlApp);
+            //    Marshal.ReleaseComObject(xlWorkSheet_2);
+            //    Marshal.ReleaseComObject(xlWorkBook_2);
+            //    Marshal.ReleaseComObject(xlApp_2);
 
             //Show message
+
             txt_Status.Text = programmFinished;
            
 
@@ -266,36 +284,38 @@ namespace EPLAN_TIA
             string startAdresse;
             string swAd;
             string hwAd;
-            Dictionary<string, string> adresseSW_HW = new Dictionary<string, string>();       
+            List<SW_HW> adresseSW_HW1;      
             bool finished = false;
-            int line = 2; //the first line ist 2 (the 1 ist only names)
-            string anzahlText; //controlar si tenemos mas dispositivos relevantes del SPS o no. 
-            int colRead = 15; //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
-
-
+            bool finished1= false;
+            int line = 2;       //the first line ist 2 (the 1 ist only names)
+            string anzahlText;  //controlar si tenemos mas dispositivos relevantes del SPS o no. 
+            int colRead = 15;   //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
+            int iList = 1;      //write in the list. 
+            int iAdress = 0;    //write in the list of the values software/hardware
+            //SW_HW swAdhwAd1= new SW_HW("null", "null");  //it has hardware parameter and software parameter
+            bool finished2=false; 
             //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
-                //try
-                //{
-                    //Read from the Excel the name of the serial number and the total number of each 
+                try
+                {
+                   adresseSW_HW1 = new List<SW_HW>();
 
-                    
-
+                    //adresseSW_HW1.Clear(); //clear for the next iteration
                     serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
                     anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
 
-                    if (serialNum!= null) //Si es un geräte util de importar en TIA
+                    if (serialNum != null) //Si es un geräte util de importar en TIA
                     {
                         //Save the easy data, because its only in each column of the excel
 
                         eplanBemerk = (string)(xlWorkSheet.Cells[line, 4] as Excel.Range).Value;
                         IP = (string)(xlWorkSheet.Cells[line, 10] as Excel.Range).Value;
 
-                            if(IP!= null)
-                            {
-                                cpuPPALES++; //we have other CPU that is central CPU.
-                            }
+                        if (IP != null)
+                        {
+                            cpuPPALES++; //we have other CPU that is central CPU.
+                        }
 
                         cpuPPAL = (string)(xlWorkSheet.Cells[line, 11] as Excel.Range).Value;
                         startAdresse = (string)(xlWorkSheet.Cells[line, 13] as Excel.Range).Value;
@@ -305,82 +325,122 @@ namespace EPLAN_TIA
                         do
                         {
                             //Read the SWpin data
+                            SW_HW swAdhwAd1 = new SW_HW("null", "null");
 
-                            
                             swAd = (string)(xlWorkSheet.Cells[line, colRead] as Excel.Range).Value;
                             hwAd = (string)(xlWorkSheet.Cells[line, (colRead + 1)] as Excel.Range).Value;
 
                             //If it was an empty cell, the check process for the SWAdresses is over
 
-                            if (String.IsNullOrEmpty(swAd) && String.IsNullOrEmpty(hwAd))
+                            if (String.IsNullOrEmpty(swAd) || String.IsNullOrEmpty(hwAd)) //aqui cambie ||
                             {
-                                finished = true;
                                 colRead = 15; //reset for the next iteration
+                                finished = true;
                             }
-                            
+
                             else
+
                             {
-                                adresseSW_HW.Add(swAd, hwAd); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer. 
-                                //line++;
+                                swAdhwAd1.swAd = swAd;
+                                swAdhwAd1.hwAd = hwAd;
+                                //adresseSW_HW1.Capacity = iAdress; //increment the size of the list dinamic.
+                                adresseSW_HW1.Add(/*iAdress, */swAdhwAd1); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer.                               
                                 colRead = colRead + 2; //direccionamos por lineas de SW.
+                                //iAdress++;
+                                finished = false;
                             }
-                             
- 
+
+
 
                         } while (!finished);
 
-                        InformationSPS informationSPS = new InformationSPS (serialNum, eplanBemerk, IP, cpuPPAL, startAdresse, adresseSW_HW);
+                        InformationSPS informationSPS = new InformationSPS(serialNum, eplanBemerk, IP, cpuPPAL, startAdresse, adresseSW_HW1);
 
-                        informationSPS.serialNum= serialNum;
+                        informationSPs.Capacity = iList; //increment the size of the list dinamic.
+                        informationSPS.serialNum = serialNum;
                         informationSPS.eplanBemerk = eplanBemerk;
                         informationSPS.IP = IP;
-                        informationSPS.cpuPPAL= cpuPPAL;
-                        informationSPS.startAdresse= startAdresse;
-                        informationSPS.adresseSW_HW= adresseSW_HW; //keep all the dictionary of adresses. 
+                        informationSPS.cpuPPAL = cpuPPAL;
+                        informationSPS.startAdresse = startAdresse;
+                        informationSPS.adresseSW_HW = adresseSW_HW1; 
+                        
 
-                        informationSPs.Add(informationSPS); //add the first information for that serielnummer in the list of informationSPS. 
+                        //foreach (string item in adresseSW_HW1)
+                        //{
+                        //    informationSPS[iList].adresseSW_HW = adresseSW_HW1; //keep all the dictionary of adresses. 
+                        //}
+                        //informationSPs.Insert(iList,informationSPS); //add the first information for that serielnummer in the list of informationSPS. 
+                        
+                        informationSPs.Add(informationSPS); //escribo los datos
 
+                        //informationSPs[iList].adresseSW_HW = adresseSW_HW1;
+                        
 
+                        //do 
+                        //{
+                            adresseSW_HW1.Clear(); //to the next iteration
+                            
+                        //    if(iAdress>=1)
+                        //    {
+                        //        iAdress--;
+                        //        finished2 = false;
+                        //    }
+
+                        //    else if(iAdress==0)
+                        //    {
+                        //        finished2 = true; 
+                        //    }
+
+                        //}while(!finished2);
+                        
+                        iAdress = 0; //initialize the size of the adresseSW_HW1. 
+                        iList++;
+                        line++;
+                         
                     }
 
+                    
+
                 
-                    else if (anzahlText ==null && serialNum == null)
+
+                    else if (anzahlText!= null && serialNum == null) //we have a geräte that is not possible to import in TIA. 
                     {
-                        finished=true;
-                        line = 2; //reset the value
+                        line++; 
+                    }
+                    else if (anzahlText ==null) //we have read all the gerätes.
+                    {
+                        finished1=true;
+                        //line = 2; //reset the value
+                        //iList = 1; //reset the value
                         txt_Status.Text = " No more data to read in SPS Datei";
                     }
                     
 
-                //}
+                }
                 //If the column of the SPS-Typ is empty
-                //catch
-                //{
-                //    //Controll if there is more SPS Data
-
-                //    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
-
-                //    if (anzahlText ==null)
-                //    {
-                //        finished=true; //there are no more SPS data. 
-                //    }
-
-                //    else
-                //    {
-                //        line++; //read the next line
-                //    }
-                //}
-
-                
-                else
+                catch
                 {
-                    line++;
+                    //Controll if there is more SPS Data
+
+                    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
+
+                   if (anzahlText ==null)
+                    {
+                        finished1=true; //there are no more SPS data. 
+                    }
+
+                    else
+                    {
+                        line++; //read the next line
+                    }
                 }
 
                 txt_Status.Text = " Reading the data of the SPS";
 
-            } while (!finished);
+            } while (!finished1);
+
         }
+
       
         public void getinfoVerbindung(int startColumn, List<InformationSPS> informationSPs)
         {
@@ -394,13 +454,11 @@ namespace EPLAN_TIA
            do {
                 //Repeat the process until an empty cell oof number of this geaete is found
 
-                textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn] as Excel.Range).Value;
-                textSource = (string)(xlWorkSheet_2.Cells[line, startColumn + 1] as Excel.Range).Value;
-
+                textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn+1] as Excel.Range).Value;
+                textSource = (string)(xlWorkSheet_2.Cells[line, startColumn ] as Excel.Range).Value;
                 
                     //Read from the Excel the name of the variable and the joints
 
-                
 
                     //informationSPS_2.eplanBemerk = textDestination; 
 
@@ -466,7 +524,7 @@ namespace EPLAN_TIA
         {
             string path =txt_Path2.Text;
             string nameWork= "SPS_neueVerbindungen.xlsx";
-            string Filename = @""+ path + @"\"+nameWork;
+            string exportFilename = @""+ path + @"\"+nameWork+@"\";
 
             //if (Directory.Exists(path))
             //{
@@ -476,35 +534,79 @@ namespace EPLAN_TIA
 
             //xlWorkBook_3.SaveAs(Filename, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
             //xlWorkBook_3.CustomDocumentProperties();
-            xlWorkBook_3.SaveAs(Filename);
-            xlWorkBook_3.Close(true);
-            xlApp_3.Quit();
-                    
-            //}
-                
-                
-             //else
-             //   {
-             //       string pathCreate = txt_Path2.Text;
-             //       Directory.CreateDirectory(pathCreate);
-                    
-             //       try
-             //       {   
-             //           xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
-             //           xlWorkBook_3.Close(true);
-             //           xlApp_3.Quit();
-             //       }
+            //xlWorkBook_3 = xlWorkBook_3.Worksheets.get_Item(1);
+            //xlWorkBook_3.Close(true);
+            //xlApp_3.Quit();
 
-             //       catch (Exception ex)
-             //       {
-             //           MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-             //       }
-                   
-             //   }
+
+            SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue);
+            SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, misValue);
+            SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook, misValue);
+
+
+            //}
+
+
+            //else
+            //   {
+            //       string pathCreate = txt_Path2.Text;
+            //       Directory.CreateDirectory(pathCreate);
+
+            //       try
+            //       {   
+            //           xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
+            //           xlWorkBook_3.Close(true);
+            //           xlApp_3.Quit();
+            //       }
+
+            //       catch (Exception ex)
+            //       {
+            //           MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //       }
+
+            //   }
         }
 
+        //Save and close Excel
+        private void SaveCloseExcel(string savePath,Excel.Application xlApp, Workbook xlWoorkbook,object misValue)
+        {
+            //Save Excel file
+            xlWorkBook.SaveAs(savePath, Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
 
-         //English selected
+            //Close Excel file
+            xlWorkBook.Close(true, misValue, misValue);
+
+            try
+            {
+                //Close Excel app and release all
+                xlApp.Quit();
+                Marshal.ReleaseComObject(xlWorkBook);
+               
+            }
+            catch
+            {
+                errorMessage = "Can´t find the excel book. ";
+                MessageBox.Show(errorMessage);
+                return;
+            }
+
+            try
+            {
+                //Close Excel app and release all
+                xlApp.Quit();
+                Marshal.ReleaseComObject(xlWorkSheet);
+                Marshal.ReleaseComObject(xlWorkBook);
+                Marshal.ReleaseComObject(xlApp);
+            }
+            catch
+            {
+                errorMessage = "Can´t close the excel book. ";
+                MessageBox.Show(errorMessage);
+                return;
+            }
+        }
+
+        //English selected
         private void btn_EN_Click(object sender, EventArgs e)
         {
             //If previous language was german
