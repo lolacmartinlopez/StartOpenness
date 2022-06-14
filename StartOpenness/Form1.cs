@@ -8,8 +8,16 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+using Microsoft.Vbe.Interop;
 using Microsoft.Office.Interop.Excel;
 using System.Linq;
+using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Data;
+using IronXL;
+using ExcelLibrary; 
+
+
 
 
 namespace EPLAN_TIA
@@ -17,10 +25,11 @@ namespace EPLAN_TIA
     public partial class Form1 : Form
     {
         //Excel variables
+
         //Excel excel = new Excel()
 
-        Excel.Application  xlApp= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
-        Excel.Application  xlApp_2= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel.Application xlApp= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
+        Excel.Application xlApp_2= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
         Excel.Application xlApp_3= new Excel.Application(); //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
 
         object misValue = System.Reflection.Missing.Value;
@@ -40,6 +49,7 @@ namespace EPLAN_TIA
         Excel.Workbook xlWorkBook_3;
         Excel.Worksheet xlWorkSheet_3;
 
+        
         //Variables para exportar 
 
 
@@ -107,8 +117,10 @@ namespace EPLAN_TIA
 
         //Lista de objetos 
 
-        List<InformationSPS> informationSPs = new List<InformationSPS>(); //keep all the information of the differents SPS avaible
-        List <verbindungenEPLAN> verbindungenEPLANs = new List<verbindungenEPLAN>(); //keep only the conexions for each IO port from a SPS (or articles that we can import in TIA)
+        List<InformationPLC> informationSPs = new List<InformationPLC>(); //keep all the information of the differents SPS avaible
+        List <conexionEPLAN> verbindungenEPLANs = new List<conexionEPLAN>(); //keep only the conexions for each IO port from a SPS (or articles that we can import in TIA)
+        
+        //creacion excel 
 
         public Form1()
         {
@@ -117,19 +129,19 @@ namespace EPLAN_TIA
         }
 
         //Ejemplo de como guardar la informacion del primer Excel. 
-        public class InformationSPS //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
+        public class InformationPLC //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
         {
             public string serialNum { get; set; }
-            public string eplanBemerk { get; set; }
+            public string eplanName { get; set; }
             public string IP { get; set; }                                 //quizas luego tengo que ponerlo modo INT 
             public string cpuPPAL { get; set; }                           //a que CPU esta conectada
             public string startAdresse { get; set; }                     //start adresse de la tarjeta
             public List<SW_HW> adresseSW_HW = new List<SW_HW>(); //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
             
-            public InformationSPS (string serianum, string eplanbemerk, string ip, string cpuppal, string startadress, List <SW_HW> adresse_sw_hw)
+            public InformationPLC (string serianum, string eplanname, string ip, string cpuppal, string startadress, List <SW_HW> adresse_sw_hw)
             {
                 serialNum = serianum;
-                eplanBemerk = eplanbemerk;
+                eplanName = eplanname;
                 IP = ip;
                 cpuPPAL = cpuppal;
                 startAdresse = startadress;
@@ -137,17 +149,17 @@ namespace EPLAN_TIA
             }
         }
 
-        public class verbindungenEPLAN //aqui podemos direccionar sabiendo ya los datos de cada SPS (es decir, como se llama cada uno) Esto será para importarlo en TIA
+        public class conexionEPLAN //aqui podemos direccionar sabiendo ya los datos de cada SPS (es decir, como se llama cada uno) Esto será para importarlo en TIA
 
         {
-            public string codSPS { get; set; } //aqui guardamos solo el codigo identificativo del PLC al que pertenece 
+            public string codPLC { get; set; } //aqui guardamos solo el codigo identificativo del PLC al que pertenece 
             public string modIO { get; set; } //aqui guardamos a cuales de los perifericos pertenece
             public string pinIO { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
 
-            public verbindungenEPLAN (string codsps, string modio, string pinio)
+            public conexionEPLAN (string codplc, string modio, string pinio)
             {
 
-                codSPS = codsps; 
+                codPLC = codplc; 
                 modIO = modio;
                 pinIO = pinio;
             }
@@ -181,7 +193,7 @@ namespace EPLAN_TIA
         }
        
         //Start the process
-        private void btn_Start_Click(object sender, EventArgs e)
+        public void btn_Start_Click(object sender, EventArgs e)
         {
             //Excel variables parte 1 del proceso (obtener datos del SPS)
 
@@ -200,18 +212,36 @@ namespace EPLAN_TIA
 
             //Excel para exportar y guardar todos los datos. De primeras estará vacío.  
 
+            xlApp_3 = new Excel.Application();
 
-            xlApp_3= new Excel.Application();
-            Excel.Workbook xlWorkBook_3 = this.xlApp_3.Workbooks.Add();
-            Excel.Worksheet xlWorkSheet_3 = xlWorkBook_3.Worksheets.Add();
+            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
+
+            /*Excel.Workbook*/  xlWorkBook_3 = xlApp_3.Workbooks.Add();
+            /*Excel.Worksheet*/ xlWorkSheet_3 = xlApp_3.Worksheets.Add();
 
 
 
-            int startColumn=1; //in Excel DateiSPS must be the first column. In opposite in the excel Verbinden must be the second column. 
-            int startColumn_2 = 4; 
+            //xlApp_3= new Excel.Application();
+            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
+            //string pathNew = System.IO.Path.Combine(txt_Path2.Text, "NeueVerbindungen.xlsx"); 
+            //Excel.Workbook xlWorkbook_3 = xlApp_3.Workbooks.Add();
+            //Excel.Worksheet xlWorkSheet_3 = xlApp_3.Worksheets.Add();
+
+            //Excel.Workbook xlWorkBook_3 = this.xlApp_3.Workbooks.Add();
+            //Excel.Worksheet xlWorkSheet_3 = xlWorkBook_3.Worksheets.Add(); 
+
+            //----------PRUEBA 1-------------
+
+
+            //ExcelLibrary.DataSetHelper.CreateWorkbook(path, DataSet dataset); 
+
+            //string pathNew = System.IO.Path.Combine(txt_Path2.Text, "NeueVerbindungen.xlsx"); 
+
+            int startColumn =1; //in Excel DateiSPS must be the first column. In opposite in the excel Verbinden must be the second column. 
+            int startColumn_2 = 9; //in Excel Verbindungen the first value ist for the source and the next for the destination
+            
             //Show message
 
-            
             txt_Status.Text = executing;
 
             //Excel variable for the new file (Excel Verbindungen 2) 
@@ -219,13 +249,13 @@ namespace EPLAN_TIA
             
             //read the data from "SPSDatei". 
 
-            getinfoSPS(startColumn);
+            getinfoPLC(startColumn);
 
             txt_Status.Text = "The information of the Excel SPS Datei was correct readed";
 
             //read the second excel but only with the data from the SPS of the previous data. 
 
-            getinfoVerbindung(startColumn_2,informationSPs);
+            getinfConexion(startColumn_2,informationSPs);
 
             txt_Status.Text = "The information of the Excel SPS Verbindungen was correct readed";
 
@@ -247,38 +277,18 @@ namespace EPLAN_TIA
             //creamos la correlación de datos entre el excel2 y las salidas de cada uno de los gerätes del programa. 
 
 
-
-            ////Close Excel files (only when we read all the data) 
-
-            //    xlWorkBook.Close(false, misValue, misValue);
-            //    xlWorkBook_2.Close(false, misValue, misValue);
-            //    xlWorkBook_3.Close(false, misValue, misValue);
-
-            ////Close Excel app and release all
-            //    xlApp.Quit();
-            //    xlApp_2.Quit();
-            //    xlApp_3.Quit();
-
-            //    Marshal.ReleaseComObject(xlWorkSheet);
-            //    Marshal.ReleaseComObject(xlWorkBook);
-            //    Marshal.ReleaseComObject(xlApp);
-            //    Marshal.ReleaseComObject(xlWorkSheet_2);
-            //    Marshal.ReleaseComObject(xlWorkBook_2);
-            //    Marshal.ReleaseComObject(xlApp_2);
-
             //Show message
 
             txt_Status.Text = programmFinished;
            
-
         }
         
 
-        public void getinfoSPS(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
+        public void getinfoPLC(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
         {
             int cpuPPALES=0; //count the number of CPU with IP. 
             string serialNum;
-            string eplanBemerk;
+            string eplanMark;
             string IP;
             string cpuPPAL;
             string startAdresse;
@@ -291,15 +301,12 @@ namespace EPLAN_TIA
             string anzahlText;  //controlar si tenemos mas dispositivos relevantes del SPS o no. 
             int colRead = 15;   //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
             int iList = 1;      //write in the list. 
-            int iAdress = 0;    //write in the list of the values software/hardware
-            //SW_HW swAdhwAd1= new SW_HW("null", "null");  //it has hardware parameter and software parameter
-            bool finished2=false; 
             //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
                 try
                 {
-                   adresseSW_HW1 = new List<SW_HW>();
+                   adresseSW_HW1 = new List<SW_HW>(); //reload a new direction in memory for the next values. 
 
                     //adresseSW_HW1.Clear(); //clear for the next iteration
                     serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
@@ -309,7 +316,7 @@ namespace EPLAN_TIA
                     {
                         //Save the easy data, because its only in each column of the excel
 
-                        eplanBemerk = (string)(xlWorkSheet.Cells[line, 4] as Excel.Range).Value;
+                        eplanMark = (string)(xlWorkSheet.Cells[line, 4] as Excel.Range).Value;
                         IP = (string)(xlWorkSheet.Cells[line, 10] as Excel.Range).Value;
 
                         if (IP != null)
@@ -324,15 +331,16 @@ namespace EPLAN_TIA
 
                         do
                         {
-                            //Read the SWpin data
-                            SW_HW swAdhwAd1 = new SW_HW("null", "null");
+                            //--Read the SWpin data
+
+                            SW_HW swAdhwAd1 = new SW_HW("null", "null"); //create a new linked list. 
 
                             swAd = (string)(xlWorkSheet.Cells[line, colRead] as Excel.Range).Value;
                             hwAd = (string)(xlWorkSheet.Cells[line, (colRead + 1)] as Excel.Range).Value;
 
                             //If it was an empty cell, the check process for the SWAdresses is over
 
-                            if (String.IsNullOrEmpty(swAd) || String.IsNullOrEmpty(hwAd)) //aqui cambie ||
+                            if (String.IsNullOrEmpty(swAd) || String.IsNullOrEmpty(hwAd)) //if one of the columns are empty, is not a correct par value
                             {
                                 colRead = 15; //reset for the next iteration
                                 finished = true;
@@ -343,10 +351,8 @@ namespace EPLAN_TIA
                             {
                                 swAdhwAd1.swAd = swAd;
                                 swAdhwAd1.hwAd = hwAd;
-                                //adresseSW_HW1.Capacity = iAdress; //increment the size of the list dinamic.
-                                adresseSW_HW1.Add(/*iAdress, */swAdhwAd1); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer.                               
-                                colRead = colRead + 2; //direccionamos por lineas de SW.
-                                //iAdress++;
+                                adresseSW_HW1.Add(swAdhwAd1); //at the end, there will be a huge dictionary with the SWAdress and the HWAdress for each serialNummer.                               
+                                colRead = colRead + 2; //the next column
                                 finished = false;
                             }
 
@@ -354,46 +360,17 @@ namespace EPLAN_TIA
 
                         } while (!finished);
 
-                        InformationSPS informationSPS = new InformationSPS(serialNum, eplanBemerk, IP, cpuPPAL, startAdresse, adresseSW_HW1);
+                        InformationPLC informationSPS = new InformationPLC(serialNum, eplanMark, IP, cpuPPAL, startAdresse, adresseSW_HW1);
 
                         informationSPs.Capacity = iList; //increment the size of the list dinamic.
                         informationSPS.serialNum = serialNum;
-                        informationSPS.eplanBemerk = eplanBemerk;
+                        informationSPS.eplanName = eplanMark;
                         informationSPS.IP = IP;
                         informationSPS.cpuPPAL = cpuPPAL;
                         informationSPS.startAdresse = startAdresse;
                         informationSPS.adresseSW_HW = adresseSW_HW1; 
-                        
+                        informationSPs.Add(informationSPS); //Assing the values
 
-                        //foreach (string item in adresseSW_HW1)
-                        //{
-                        //    informationSPS[iList].adresseSW_HW = adresseSW_HW1; //keep all the dictionary of adresses. 
-                        //}
-                        //informationSPs.Insert(iList,informationSPS); //add the first information for that serielnummer in the list of informationSPS. 
-                        
-                        informationSPs.Add(informationSPS); //escribo los datos
-
-                        //informationSPs[iList].adresseSW_HW = adresseSW_HW1;
-                        
-
-                        //do 
-                        //{
-                            adresseSW_HW1.Clear(); //to the next iteration
-                            
-                        //    if(iAdress>=1)
-                        //    {
-                        //        iAdress--;
-                        //        finished2 = false;
-                        //    }
-
-                        //    else if(iAdress==0)
-                        //    {
-                        //        finished2 = true; 
-                        //    }
-
-                        //}while(!finished2);
-                        
-                        iAdress = 0; //initialize the size of the adresseSW_HW1. 
                         iList++;
                         line++;
                          
@@ -442,16 +419,44 @@ namespace EPLAN_TIA
         }
 
       
-        public void getinfoVerbindung(int startColumn, List<InformationSPS> informationSPs)
+        public void getinfConexion(int startColumn, List<InformationPLC> informationSPs)
         {
             int line = 2; 
             string textDestination;
             string textSource;
             int newLine = 2;
             bool finished=false;
+            int numPLC = informationSPs.Count;
 
 
-           do {
+            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
+            //Excel.Workbook xlWorkbook_3 = xlApp_3.Workbooks.Add();
+            //Excel.Worksheet xlWorkSheet_3 = xlApp_3.Worksheets.Add();
+
+
+            //Excel.Sheets xlWorkSheet1_3 = xlWorkBook_3.Worksheets/*Add(Excel.XlWBATemplate.xlWBATWorksheet)*/;
+
+           
+
+            //xlWorkBook_3.Worksheets.Add(Excel.XlWBATemplate.xlWBATWorksheet);
+
+
+
+            //xlWorkSheet_3.Name = "Conexions_PLC";
+            //xlWorkSheet_3.StandardWidth = 2; 
+            //xlWorkSheet_3.Tab = numPLC*20; //maximun a PLC have 20 IO. 
+
+            //xlApp_3.ActiveWorkbook.Sheets.Delete(); //delete the first sheet that excel create
+            
+            xlWorkSheet_3.Activate();
+            xlWorkSheet_3.Cells[1, 1] = "Source";
+            xlWorkSheet_3.Cells[1, 2] = "Destination";
+            
+
+
+
+
+            do {
                 //Repeat the process until an empty cell oof number of this geaete is found
 
                 textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn+1] as Excel.Range).Value;
@@ -465,51 +470,49 @@ namespace EPLAN_TIA
                     if (textDestination != null && textSource != null)
                     {
 
-                        //Look if there is a coincidence with the name of the device
+                    //Look if there is a coincidence with the name of the device
 
-                        foreach (InformationSPS item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
+                    foreach (InformationPLC item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
                         {
-                            xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1); //abrimos solo la primera hoja del nuevo excel.
-                            xlWorkSheet_3.Cells[1, 1] = "Source";
-                            xlWorkSheet_3.Cells[1, 2] = "Destination";
-
-
-
-
-                            if (item.eplanBemerk == textDestination || item.eplanBemerk == textSource) //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
+                            
+                            if (textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName)) //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
                                 {
+                            //delete the symbol "="
+
+                            textDestination=textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
+                            textSource= textSource.Replace('=', ' ');
+                            
 
                                     //sirve si tenemos un gerate de importancia (de importar en TIA) tanto si está en ziel como en destination
 
-                                    xlWorkSheet_3.Cells[newLine, 1].Value = textSource;
-                                    xlWorkSheet_3.Cells[newLine, 2].Value = textDestination;
-
+                                    xlWorkSheet_3.Cells[newLine, 1] = textSource;
+                                    xlWorkSheet_3.Cells[newLine, 2] = textDestination;
                                     newLine++; //the next we write in the next position. 
 
                                 }
+                            else
+                            {
+                               line++; //we read the next line.  
+                            }
                         }
 
 
                     }
 
-                
+                //If the column of the SPS-Typ is empty
 
 
+                //Controll if there is more SPS Data
 
-                 //If the column of the SPS-Typ is empty
-               
+                else if (textDestination == null || textSource == null)
+                {
+                    finished = true; //there are no more SPS data. 
+                    line = 2; //reset value of excel 2
+                    newLine = 2; //reset value of excel 3
 
-                    //Controll if there is more SPS Data
+                }
 
-                    else if (textDestination == null && textSource == null)
-                    {
-                            finished = true; //there are no more SPS data. 
-                            line = 2; //reset value
-                            newLine = 2; //reset value
-
-                    }
-
-                    else
+                else
                     {
                         line++; //go to the next line in the 2nd Excel.
                     }
@@ -522,9 +525,9 @@ namespace EPLAN_TIA
         //Export to excel
         public void exportExcel ()
         {
-            string path =txt_Path2.Text;
-            string nameWork= "SPS_neueVerbindungen.xlsx";
-            string exportFilename = @""+ path + @"\"+nameWork+@"\";
+            //string path =txt_Path2.Text;
+            //string nameWork= "SPS_neueVerbindungen.xlsx";
+            //string exportFilename = @""+ path + @"\"+nameWork;
 
             //if (Directory.Exists(path))
             //{
@@ -536,12 +539,17 @@ namespace EPLAN_TIA
             //xlWorkBook_3.CustomDocumentProperties();
             //xlWorkBook_3 = xlWorkBook_3.Worksheets.get_Item(1);
             //xlWorkBook_3.Close(true);
-            //xlApp_3.Quit();
+            //xlApp_3.Quit();exportFilename
 
 
-            SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue);
-            SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, misValue);
-            SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook, misValue);
+            string path = txt_Path2.Text;
+            string nameWork = "SPS_neueVerbindungen.xlsx";
+            string exportFilename = @"" + path + @"\" + nameWork;
+
+
+            SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook, misValue,1); //save the SPSDATEI
+            SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, misValue,2); //save the SPS conexions
+            SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue,3); //Save the new excel with all the info
 
 
             //}
@@ -568,43 +576,80 @@ namespace EPLAN_TIA
         }
 
         //Save and close Excel
-        private void SaveCloseExcel(string savePath,Excel.Application xlApp, Workbook xlWoorkbook,object misValue)
+        public void SaveCloseExcel( string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
         {
-            //Save Excel file
-            xlWorkBook.SaveAs(savePath, Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+            Excel.Application xlAPP= xlApp;
+            Excel.Workbook xlWorkbook1= xlWorkBook1;
 
+            string pathString = System.IO.Path.Combine(savePath, "SubFolder");
+            string filename = System.IO.Path.GetFileName(savePath);
+            
+
+            if (Directory.Exists(pathString))
+            {
+
+                System.IO.Directory.CreateDirectory(pathString);
+
+            }
+
+       
+            if(seq==3)
+            {
+                
+                xlWorkBook1.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlShared, misValue, misValue, misValue, misValue, misValue);
+          
+            }
+
+            else
+            {
+                savePath = savePath.Replace(".xlsx", " ");
+                savePath = savePath + "(1).xlsx";
+                xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
+
+            }
+
+
+            
             //Close Excel file
-            xlWorkBook.Close(true, misValue, misValue);
 
-            try
-            {
+
+                xlWorkbook1.Close(true/*, misValue, misValue*/);
+
+
+
+                //try
+                //{
                 //Close Excel app and release all
-                xlApp.Quit();
+
+                xlAPP.Quit();
                 Marshal.ReleaseComObject(xlWorkBook);
-               
-            }
-            catch
-            {
-                errorMessage = "Can´t find the excel book. ";
-                MessageBox.Show(errorMessage);
-                return;
-            }
-
-            try
-            {
-                //Close Excel app and release all
-                xlApp.Quit();
                 Marshal.ReleaseComObject(xlWorkSheet);
-                Marshal.ReleaseComObject(xlWorkBook);
-                Marshal.ReleaseComObject(xlApp);
-            }
-            catch
-            {
-                errorMessage = "Can´t close the excel book. ";
-                MessageBox.Show(errorMessage);
-                return;
-            }
+                Marshal.ReleaseComObject(xlAPP);
+
+                //}
+                //catch
+                //{
+                //    errorMessage = "Can´t find the excel book. ";
+                //    MessageBox.Show(errorMessage);
+                //    return;
+                //}
+
+            //try
+            //{
+            //    //Close Excel app and release all
+            //    xlAPP.Quit();
+            //    Marshal.ReleaseComObject(xlWorkSheet);
+            //    Marshal.ReleaseComObject(xlWorkBook);
+            //    Marshal.ReleaseComObject(xlAPP);
+            //}
+            //catch
+            //{
+            //    errorMessage = "Can´t close the excel book. ";
+            //    MessageBox.Show(errorMessage);
+            //    return;
+            //}
         }
+
 
         //English selected
         private void btn_EN_Click(object sender, EventArgs e)
