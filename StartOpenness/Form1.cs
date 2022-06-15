@@ -14,8 +14,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Data;
-//using IronXL;
-using ExcelLibrary; 
+using ExcelLibrary;
+using Siemens.Engineering;
+using Siemens.Engineering.Compiler;
+using Siemens.Engineering.Hmi;
+using Siemens.Engineering.HW;
+using Siemens.Engineering.HW.Features;
+using Siemens.Engineering.HW.Utilities;
+using Siemens.Engineering.Library;
+using Siemens.Engineering.Settings;
+using Siemens.Engineering.SW;
+using Siemens.Engineering.SW.Blocks;
+using Siemens.Engineering.SW.Types;
+
 
 
 
@@ -24,6 +35,14 @@ namespace EPLAN_TIA
 {
     public partial class Form1 : Form
     {
+        public Form1()
+        {
+
+            InitializeComponent();
+            AppDomain CurrentDomain = AppDomain.CurrentDomain;
+            CurrentDomain.AssemblyResolve += new ResolveEventHandler(MyResolver);
+        }
+
         //Excel variables
 
         //Excel excel = new Excel()
@@ -49,9 +68,12 @@ namespace EPLAN_TIA
         Excel.Workbook xlWorkBook_3;
         Excel.Worksheet xlWorkSheet_3;
 
-        
-        //Variables para exportar 
 
+        //TIA Variables 
+
+        public static Project project { get; set; }
+        public TiaPortal MyTiaPortal { get; set; }
+        public Project MyProject { get; set; }
 
         //Language selected (English by default)
         string languageSelected = "EN";
@@ -91,6 +113,11 @@ namespace EPLAN_TIA
         string statusEN="Status";
         string invalidPathEN = "Invalid path";
 
+        //new English variables 
+
+        string closeAllInstances = "All TIA Portal instances will be closed. Do you want to continue?";
+        string closeAllInstancesWarning = "Close all TIA Portal instances";
+
         //German variables
         string errorMessageDE = "Fehler: ";
 
@@ -122,11 +149,7 @@ namespace EPLAN_TIA
         
         //creacion excel 
 
-        public Form1()
-        {
-            InitializeComponent();
-            AppDomain CurrentDomain = AppDomain.CurrentDomain;
-        }
+      
 
         //Ejemplo de como guardar la informacion del primer Excel. 
         public class InformationPLC //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
@@ -185,6 +208,7 @@ namespace EPLAN_TIA
         //Load form
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             //Set visualisation to normal size
             WindowState = FormWindowState.Normal;
             //Load texts in english by default
@@ -286,15 +310,22 @@ namespace EPLAN_TIA
             Marshal.ReleaseComObject(xlApp_2);
 
 
-            Marshal.ReleaseComObject(xlWorkBook_3);
-            Marshal.ReleaseComObject(xlWorkSheet_3);
-            Marshal.ReleaseComObject(xlApp_3);
+            //Marshal.ReleaseComObject(xlWorkBook_3);
+            //Marshal.ReleaseComObject(xlWorkSheet_3);
+            //Marshal.ReleaseComObject(xlApp_3);
 
 
-            //leemos la lista creada de SPSDatei. 
+            //the third Excel keep opened.
 
+            MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
 
-            //importamos en el TIA con comandos de importar (AQUI ANADIR COSAS DEL OTRO PROGRAMA).
+            //Create a new TIA Project
+
+            CreateProject();
+
+            //Add the dispositives. 
+
+            AddDisp(); 
 
 
 
@@ -307,6 +338,7 @@ namespace EPLAN_TIA
            
         }
         
+        //--Functions for the first part of the APP. (Obtein the data of the EPLAN) 
 
         public void getinfoPLC(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
         {
@@ -399,10 +431,6 @@ namespace EPLAN_TIA
                         line++;
                          
                     }
-
-                    
-
-                
 
                     else if (anzahlText!= null && serialNum == null) //we have a geräte that is not possible to import in TIA. 
                     {
@@ -509,106 +537,13 @@ namespace EPLAN_TIA
             }
           
 
-
-
-            //do {
-            //    //Repeat the process until an empty cell oof number of this geaete is found
-
-            //    textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn+1] as Excel.Range).Value;
-            //    textSource = (string)(xlWorkSheet_2.Cells[line, startColumn ] as Excel.Range).Value;
-
-            //    //Read from the Excel the name of the variable and the joints
-
-
-            //    //informationSPS_2.eplanBemerk = textDestination; 
-
-            //    //foreach (InformationPLC item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
-            //    //{
-
-                  
-
-            //        if (textDestination != null && textSource != null)
-            //        {
-
-            //        //Look if there is a coincidence with the name of the device
-                        
-
-            //            {
-            //            do
-            //            {
-            //                if (textDestination.Contains() || textSource.Contains() //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
-            //                {
-            //                    //delete the symbol "="
-
-            //                    textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
-            //                    textSource = textSource.Replace('=', ' ');
-
-
-            //                    //sirve si tenemos un gerate de importancia (de importar en TIA) tanto si está en ziel como en destination
-
-            //                    xlWorkSheet_3.Cells[newLine, 1] = textSource;
-            //                    xlWorkSheet_3.Cells[newLine, 2] = textDestination;
-            //                    newLine++; //the next we write in the next position. 
-            //                    i++; //found
-
-            //                }
-            //                else
-            //                {
-            //                    line++; //we read the next line.  
-            //                }
-
-            //            } while (i < item.adresseSW_HW.Count);
-            //        }
-                       
-
-            //                i = 0; 
-                           
-            //        }
-
-
-            //    //If the column of the SPS-Typ is empty
-
-
-            //    //Controll if there is more SPS Data
-
-            //        else if (textDestination == null || textSource == null)
-            //        {
-            //            finished = true; //there are no more SPS data. 
-            //            line = 2; //reset value of excel 2
-            //            newLine = 2; //reset value of excel 3
-            //            i = 0; //reset
-
-            //        }
-
-            //        else
-            //        {
-            //                line++; //go to the next line in the 2nd Excel.
-            //        }
-            //    //}
-
-            //} while (!finished);
-
         }
 
 
         //Export to excel
         public void exportExcel ()
         {
-            //string path =txt_Path2.Text;
-            //string nameWork= "SPS_neueVerbindungen.xlsx";
-            //string exportFilename = @""+ path + @"\"+nameWork;
-
-            //if (Directory.Exists(path))
-            //{
-
-
-            //este try es para capturar algun error al momento de intentar guardar el archivo
-
-            //xlWorkBook_3.SaveAs(Filename, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
-            //xlWorkBook_3.CustomDocumentProperties();
-            //xlWorkBook_3 = xlWorkBook_3.Worksheets.get_Item(1);
-            //xlWorkBook_3.Close(true);
-            //xlApp_3.Quit();exportFilename
+           
 
 
             string path = txt_Path2.Text;
@@ -621,27 +556,6 @@ namespace EPLAN_TIA
             SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue,3); //Save the new excel with all the info
 
 
-            //}
-
-
-            //else
-            //   {
-            //       string pathCreate = txt_Path2.Text;
-            //       Directory.CreateDirectory(pathCreate);
-
-            //       try
-            //       {   
-            //           xlWorkBook_3.SaveAs(path, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
-            //           xlWorkBook_3.Close(true);
-            //           xlApp_3.Quit();
-            //       }
-
-            //       catch (Exception ex)
-            //       {
-            //           MessageBox.Show("No data to save", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //       }
-
-            //   }
         }
 
         //Save and close Excel
@@ -677,45 +591,144 @@ namespace EPLAN_TIA
 
             }
 
+          
+        }
 
-            
-            //Close Excel file
-
-
-                //xlWorkbook1.Close(true/*, misValue, misValue*/);
+        //-- Functions for TIA Portal 
 
 
-                //try
-                //{
-                //Close Excel app and release all
+        //Create new Project 
 
-                //xlAPP.Quit();
-                //Marshal.ReleaseComObject(xlWorkBook);
-                //Marshal.ReleaseComObject(xlWorkSheet);
-                //Marshal.ReleaseComObject(xlAPP);
+        public void CreateProject()
+        {
+            ProjectComposition projectComposition = MyTiaPortal.Projects;
 
-                //}
-                //catch
-                //{
-                //    errorMessage = "Can´t find the excel book. ";
-                //    MessageBox.Show(errorMessage);
-                //    return;
-                //}
+            //Create a new folder with the Project
+            DirectoryInfo targetDirectory = new DirectoryInfo(@"D:\TiaProjects");
 
-            //try
-            //{
-            //    //Close Excel app and release all
-            //    xlAPP.Quit();
-            //    Marshal.ReleaseComObject(xlWorkSheet);
-            //    Marshal.ReleaseComObject(xlWorkBook);
-            //    Marshal.ReleaseComObject(xlAPP);
-            //}
-            //catch
-            //{
-            //    errorMessage = "Can´t close the excel book. ";
-            //    MessageBox.Show(errorMessage);
-            //    return;
-            //}
+            // Create a project with name Myproject
+            Project project = projectComposition.Create(targetDirectory, "MyProject");
+        }
+
+        public void AddDisp()
+        {
+            DeviceComposition currentDevices = project.Devices;
+            Device newDevice = currentDevices.CreateWithItem("OrderNumber:6ES7 510-1DJ01-0AB0/V2.0", "PLC_1", "New Device"); 
+
+        }
+
+        //Kill the TIA processes. 
+        
+        public void DisposeTIA()
+        {
+            //Creamos linked list con variables de tipo Process. Siempre vamos a crear liked list cuando tengamos numero de datos indefinido. 
+
+            IList<TiaPortalProcess> tiaProcessList = TiaPortal.GetProcesses(); //Obtenemos cuantos procesos de TIA hay abiertos en un momento
+
+            if (tiaProcessList.Count > 0) //si hay mas de un proceso abierto en TIA. 
+            {
+                //Show YES/NO warning that says that ALL the TIA Portal 15.1 instances will be closed
+
+                DialogResult dialogResult = MessageBox.Show(closeAllInstances, closeAllInstancesWarning, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (dialogResult == DialogResult.Yes)
+                {
+                    //Update status message
+                    txt_Status.Text = "TIA Portal closing";
+                    MyTiaPortal.Dispose();
+                }
+                else
+                {
+                    txt_Status.Text = "TIA Portal are not going to close";
+
+                }
+            }
+
+        }
+        
+        //Search Project (Implement if we have a created Project, add direct the PLC or the element) 
+
+      
+        //Search Zip Project
+
+
+        public void OpenProject(string ProjectPath)
+        {
+            try
+            {
+                MyProject = MyTiaPortal.Projects.Open(new FileInfo(ProjectPath));
+               
+            }
+            catch (Exception ex)
+            {
+                txt_Status.Text = "Error while opening project" + ex.Message;
+             
+            }
+           
+        }
+
+        public void SaveProject()
+        {
+            MyProject.Save();
+            txt_Status.Text = "Project saved";
+        }
+
+
+        private void CloseTIAInstance()
+        {
+        
+            //Try to close a project if it is opened
+            try
+            {
+                //Close project if it is opened
+                MyProject.Close(); 
+            }
+            catch
+            {
+
+            }
+            //Desconectamos del TIA Portal. 
+            MyTiaPortal.Dispose();
+            //Cerramos todas las instancias de TIA Portal abiertas
+            foreach (var process in Process.GetProcessesByName("Siemens.Automation.Portal"))
+            {
+                process.Kill();
+            }
+            //Indicamos que el TIA se ha cerrado. 
+
+        }
+
+        //------------Assembly to connect with TIA. 
+
+        private static Assembly MyResolver(object sender, ResolveEventArgs args)
+        {
+            int index = args.Name.IndexOf(',');
+            if (index == -1)
+            {
+                return null;
+            }
+            string name = args.Name.Substring(0, index);
+
+            RegistryKey filePathReg = Registry.LocalMachine.OpenSubKey(
+                "SOFTWARE\\Siemens\\Automation\\Openness\\15.1\\PublicAPI\\15.1.0.0");
+
+            if (filePathReg == null)
+                return null;
+
+            object oRegKeyValue = filePathReg.GetValue(name);
+            if (oRegKeyValue != null)
+            {
+                string filePath = oRegKeyValue.ToString();
+
+                string path = filePath;
+                string fullPath = Path.GetFullPath(path);
+                if (File.Exists(fullPath))
+                {
+                    return Assembly.LoadFrom(fullPath);
+                }
+            }
+
+            return null;
         }
 
 
