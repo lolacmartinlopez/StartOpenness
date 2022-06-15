@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Data;
-using IronXL;
+//using IronXL;
 using ExcelLibrary; 
 
 
@@ -265,6 +265,30 @@ namespace EPLAN_TIA
 
             exportExcel();
 
+            //Close Excel 
+
+            xlWorkBook.Close(true);
+            xlApp.Quit();
+            xlWorkBook_2.Close(true);
+            xlApp_2.Quit();
+            xlWorkBook_3.Close(true);
+            xlApp_3.Quit();
+
+            //Kill the processes
+
+            Marshal.ReleaseComObject(xlWorkBook);
+            Marshal.ReleaseComObject(xlWorkSheet);
+            Marshal.ReleaseComObject(xlApp);
+
+
+            Marshal.ReleaseComObject(xlWorkBook_2);
+            Marshal.ReleaseComObject(xlWorkSheet_2);
+            Marshal.ReleaseComObject(xlApp_2);
+
+
+            Marshal.ReleaseComObject(xlWorkBook_3);
+            Marshal.ReleaseComObject(xlWorkSheet_3);
+            Marshal.ReleaseComObject(xlApp_3);
 
 
             //leemos la lista creada de SPSDatei. 
@@ -424,100 +448,145 @@ namespace EPLAN_TIA
             int line = 2; 
             string textDestination;
             string textSource;
+            string name; 
+
             int newLine = 2;
             bool finished=false;
-            int numPLC = informationSPs.Count;
-
-
-            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
-            //Excel.Workbook xlWorkbook_3 = xlApp_3.Workbooks.Add();
-            //Excel.Worksheet xlWorkSheet_3 = xlApp_3.Worksheets.Add();
-
-
-            //Excel.Sheets xlWorkSheet1_3 = xlWorkBook_3.Worksheets/*Add(Excel.XlWBATemplate.xlWBATWorksheet)*/;
-
-           
-
-            //xlWorkBook_3.Worksheets.Add(Excel.XlWBATemplate.xlWBATWorksheet);
-
-
-
-            //xlWorkSheet_3.Name = "Conexions_PLC";
-            //xlWorkSheet_3.StandardWidth = 2; 
-            //xlWorkSheet_3.Tab = numPLC*20; //maximun a PLC have 20 IO. 
-
-            //xlApp_3.ActiveWorkbook.Sheets.Delete(); //delete the first sheet that excel create
+            //int numPLC = informationSPs.Count;
+            //int i = 0; 
             
             xlWorkSheet_3.Activate();
-            xlWorkSheet_3.Cells[1, 1] = "Source";
-            xlWorkSheet_3.Cells[1, 2] = "Destination";
-            
+            xlWorkSheet_3.Cells[1, 1] = "PLC/Display";
+            xlWorkSheet_3.Cells[1, 2] = "Source";
+            xlWorkSheet_3.Cells[1, 3] = "Destination";
 
+            //Excel.Range excelSize= (Excel.Range)xlWorkSheet_2.Columns;
+            //int excelSizenum = (int)excelSize.ColumnWidth; 
+            int count = 0; 
 
-
-
-            do {
-                //Repeat the process until an empty cell oof number of this geaete is found
-
-                textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn+1] as Excel.Range).Value;
-                textSource = (string)(xlWorkSheet_2.Cells[line, startColumn ] as Excel.Range).Value;
-                
-                    //Read from the Excel the name of the variable and the joints
-
-
-                    //informationSPS_2.eplanBemerk = textDestination; 
+            foreach (InformationPLC item in informationSPs)
+            {   
+                do
+                {
+                   
+                    textSource = (string)(xlWorkSheet_2.Cells[line, startColumn] as Excel.Range).Value;
+                    textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn + 1] as Excel.Range).Value;
 
                     if (textDestination != null && textSource != null)
                     {
-
-                    //Look if there is a coincidence with the name of the device
-
-                    foreach (InformationPLC item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
+                        if(textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName))
                         {
-                            
-                            if (textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName)) //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
-                                {
                             //delete the symbol "="
+                            name = item.eplanName.Replace('=', ' ');
+                            textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
+                            textSource = textSource.Replace('=', ' ');
 
-                            textDestination=textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
-                            textSource= textSource.Replace('=', ' ');
+                            //sirve si tenemos un gerate de importancia(de importar en TIA) tanto si está en ziel como en destination
+
+                            xlWorkSheet_3.Cells[newLine, 1] = name; 
+                            xlWorkSheet_3.Cells[newLine, 2] = textSource;
+                            xlWorkSheet_3.Cells[newLine, 3] = textDestination;
+                            newLine++; //the next we write in the next position.
                             
-
-                                    //sirve si tenemos un gerate de importancia (de importar en TIA) tanto si está en ziel como en destination
-
-                                    xlWorkSheet_3.Cells[newLine, 1] = textSource;
-                                    xlWorkSheet_3.Cells[newLine, 2] = textDestination;
-                                    newLine++; //the next we write in the next position. 
-
-                                }
-                            else
-                            {
-                               line++; //we read the next line.  
-                            }
                         }
 
 
                     }
 
-                //If the column of the SPS-Typ is empty
-
-
-                //Controll if there is more SPS Data
-
-                else if (textDestination == null || textSource == null)
-                {
-                    finished = true; //there are no more SPS data. 
-                    line = 2; //reset value of excel 2
-                    newLine = 2; //reset value of excel 3
-
-                }
-
-                else
+                    else if (textDestination == null && textSource == null)
                     {
-                        line++; //go to the next line in the 2nd Excel.
+                        finished = true;
+                        line = 2;
                     }
 
-            } while (!finished);
+
+                    line++; //read the next line in the 2nd excel. 
+
+                } while (!finished);
+
+                count++; //Prueba
+                finished = false;
+            }
+          
+
+
+
+            //do {
+            //    //Repeat the process until an empty cell oof number of this geaete is found
+
+            //    textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn+1] as Excel.Range).Value;
+            //    textSource = (string)(xlWorkSheet_2.Cells[line, startColumn ] as Excel.Range).Value;
+
+            //    //Read from the Excel the name of the variable and the joints
+
+
+            //    //informationSPS_2.eplanBemerk = textDestination; 
+
+            //    //foreach (InformationPLC item in informationSPs) //por cada InformationSPS que tengamos en informationSPs le llamaremos "item". Es decir, cada linea de informationSPs lo guardamos en la variable item
+            //    //{
+
+                  
+
+            //        if (textDestination != null && textSource != null)
+            //        {
+
+            //        //Look if there is a coincidence with the name of the device
+                        
+
+            //            {
+            //            do
+            //            {
+            //                if (textDestination.Contains() || textSource.Contains() //si lo que tenemos en el excel está en algun bemerkung de la primera linea:
+            //                {
+            //                    //delete the symbol "="
+
+            //                    textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
+            //                    textSource = textSource.Replace('=', ' ');
+
+
+            //                    //sirve si tenemos un gerate de importancia (de importar en TIA) tanto si está en ziel como en destination
+
+            //                    xlWorkSheet_3.Cells[newLine, 1] = textSource;
+            //                    xlWorkSheet_3.Cells[newLine, 2] = textDestination;
+            //                    newLine++; //the next we write in the next position. 
+            //                    i++; //found
+
+            //                }
+            //                else
+            //                {
+            //                    line++; //we read the next line.  
+            //                }
+
+            //            } while (i < item.adresseSW_HW.Count);
+            //        }
+                       
+
+            //                i = 0; 
+                           
+            //        }
+
+
+            //    //If the column of the SPS-Typ is empty
+
+
+            //    //Controll if there is more SPS Data
+
+            //        else if (textDestination == null || textSource == null)
+            //        {
+            //            finished = true; //there are no more SPS data. 
+            //            line = 2; //reset value of excel 2
+            //            newLine = 2; //reset value of excel 3
+            //            i = 0; //reset
+
+            //        }
+
+            //        else
+            //        {
+            //                line++; //go to the next line in the 2nd Excel.
+            //        }
+            //    //}
+
+            //} while (!finished);
 
         }
 
@@ -576,10 +645,10 @@ namespace EPLAN_TIA
         }
 
         //Save and close Excel
-        public void SaveCloseExcel( string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
+        public void SaveCloseExcel(string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
         {
             Excel.Application xlAPP= xlApp;
-            Excel.Workbook xlWorkbook1= xlWorkBook1;
+           Excel.Workbook xlWorkbook1= xlWorkBook1;
 
             string pathString = System.IO.Path.Combine(savePath, "SubFolder");
             string filename = System.IO.Path.GetFileName(savePath);
@@ -596,7 +665,7 @@ namespace EPLAN_TIA
             if(seq==3)
             {
                 
-                xlWorkBook1.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlShared, misValue, misValue, misValue, misValue, misValue);
+                xlWorkBook1.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault);
           
             }
 
@@ -613,18 +682,17 @@ namespace EPLAN_TIA
             //Close Excel file
 
 
-                xlWorkbook1.Close(true/*, misValue, misValue*/);
-
+                //xlWorkbook1.Close(true/*, misValue, misValue*/);
 
 
                 //try
                 //{
                 //Close Excel app and release all
 
-                xlAPP.Quit();
-                Marshal.ReleaseComObject(xlWorkBook);
-                Marshal.ReleaseComObject(xlWorkSheet);
-                Marshal.ReleaseComObject(xlAPP);
+                //xlAPP.Quit();
+                //Marshal.ReleaseComObject(xlWorkBook);
+                //Marshal.ReleaseComObject(xlWorkSheet);
+                //Marshal.ReleaseComObject(xlAPP);
 
                 //}
                 //catch
