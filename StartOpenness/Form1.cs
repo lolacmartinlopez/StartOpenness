@@ -50,6 +50,7 @@ namespace EPLAN_TIA
         Excel.Application xlApp= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
         Excel.Application xlApp_2= new Excel.Application(); //Asi llamamos al tipo de formato que me viene con el excel.
         Excel.Application xlApp_3= new Excel.Application(); //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
+        Excel.Application xlApp_4 = new Excel.Application(); //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
 
         object misValue = System.Reflection.Missing.Value;
 
@@ -68,7 +69,11 @@ namespace EPLAN_TIA
         Excel.Workbook xlWorkBook_3;
         Excel.Worksheet xlWorkSheet_3;
 
+        //SPS TIA
 
+        Excel.Workbook xlWorkBook_4;
+        Excel.Worksheet xlWorkSheet_4;
+        
         //TIA Variables 
 
         public static Project project { get; set; }
@@ -310,22 +315,28 @@ namespace EPLAN_TIA
             Marshal.ReleaseComObject(xlApp_2);
 
 
-            //Marshal.ReleaseComObject(xlWorkBook_3);
-            //Marshal.ReleaseComObject(xlWorkSheet_3);
-            //Marshal.ReleaseComObject(xlApp_3);
+            Marshal.ReleaseComObject(xlWorkBook_3);
+            Marshal.ReleaseComObject(xlWorkSheet_3);
+            Marshal.ReleaseComObject(xlApp_3);
 
 
-            //the third Excel keep opened.
 
-            MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
 
-            //Create a new TIA Project
+            ////the third Excel keep opened.
+            ///
 
-            CreateProject();
+            //ObteinAdressSftw(informationSPs);
+            //SaveCloseExcel(txt_Path2.Text, xlApp_3, xlWorkBook_3, misValue, 4);
 
-            //Add the dispositives. 
+            //MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
 
-            AddDisp(); 
+            ////Create a new TIA Project
+
+            //CreateProject();
+
+            ////Add the dispositives. 
+
+            //AddDisp(); 
 
 
 
@@ -420,7 +431,7 @@ namespace EPLAN_TIA
 
                         informationSPs.Capacity = iList; //increment the size of the list dinamic.
                         informationSPS.serialNum = serialNum;
-                        informationSPS.eplanName = eplanMark;
+                        informationSPS.eplanName = eplanMark.Replace('=', ' ');
                         informationSPS.IP = IP;
                         informationSPS.cpuPPAL = cpuPPAL;
                         informationSPS.startAdresse = startAdresse;
@@ -476,17 +487,28 @@ namespace EPLAN_TIA
             int line = 2; 
             string textDestination;
             string textSource;
-            string name; 
-
+            string name;
+            string hdwadd;
+            string sfadd;
+            string senactadd;
+            int positionSen;
+            int positionSenFin; 
+            int position; 
             int newLine = 2;
             bool finished=false;
             //int numPLC = informationSPs.Count;
             //int i = 0; 
-            
+
+           
+
             xlWorkSheet_3.Activate();
             xlWorkSheet_3.Cells[1, 1] = "PLC/Display";
-            xlWorkSheet_3.Cells[1, 2] = "Source";
-            xlWorkSheet_3.Cells[1, 3] = "Destination";
+            xlWorkSheet_3.Cells[1, 2] = "Software Adress In/Out"; //keep the sftwr adress
+            xlWorkSheet_3.Cells[1, 3] = "Hardware Adress In/Out"; //keep the sftwr adress
+            xlWorkSheet_3.Cells[1, 5] = "Source";
+            xlWorkSheet_3.Cells[1, 6] = "Destination";
+            xlWorkSheet_3.Cells[1, 4] = "Sensor/Aktuator";
+
 
             //Excel.Range excelSize= (Excel.Range)xlWorkSheet_2.Columns;
             //int excelSizenum = (int)excelSize.ColumnWidth; 
@@ -496,29 +518,70 @@ namespace EPLAN_TIA
             {   
                 do
                 {
-                   
+                    name = item.eplanName;
                     textSource = (string)(xlWorkSheet_2.Cells[line, startColumn] as Excel.Range).Value;
                     textDestination = (string)(xlWorkSheet_2.Cells[line, startColumn + 1] as Excel.Range).Value;
 
                     if (textDestination != null && textSource != null)
                     {
-                        if(textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName))
+                        textSource = textSource.Replace('=', ' ');
+                        textDestination = textDestination.Replace('=', ' ');
+
+                        if (textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName))
                         {
-                            //delete the symbol "="
-                            name = item.eplanName.Replace('=', ' ');
-                            textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
-                            textSource = textSource.Replace('=', ' ');
+                            ////delete the symbol "="
+                            //name = item.eplanName.Replace('=', ' ');
+                            //textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
+                            //textSource = textSource.Replace('=', ' ');
 
                             //sirve si tenemos un gerate de importancia(de importar en TIA) tanto si está en ziel como en destination
-
+                            
+                           
                             xlWorkSheet_3.Cells[newLine, 1] = name; 
-                            xlWorkSheet_3.Cells[newLine, 2] = textSource;
-                            xlWorkSheet_3.Cells[newLine, 3] = textDestination;
+                            xlWorkSheet_3.Cells[newLine, 5] = textSource;
+                            xlWorkSheet_3.Cells[newLine, 6] = textDestination;
+                            
+
+                            if (textSource.Contains(item.eplanName)) //is a Exit from the PLC. Take the adresse
+                            {
+                                position = textSource.IndexOf(":"); //look for that character
+                                positionSen = textDestination.IndexOf("+");
+                                positionSenFin = textDestination.IndexOf(":");
+                                senactadd = textDestination.Substring(positionSen, 10);
+                                hdwadd = textSource.Substring(position+1); //maybe we have to put lenght-1. 
+                                foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
+                                {
+                                    if (sftwhw.hwAd == hdwadd)
+                                    {
+                                        sfadd = sftwhw.swAd;
+                                        xlWorkSheet_3.Cells[newLine, 2] = sfadd;
+                                        xlWorkSheet_3.Cells[newLine, 3] = hdwadd;
+                                        xlWorkSheet_3.Cells[newLine, 4] = senactadd; 
+                                    }
+                                }
+                            }
+
+                            else  //thats an entrance in the PLC 
+                            {
+                                position = textDestination.IndexOf(":"); //look for that character
+                                positionSen = textSource.IndexOf("+");
+                                positionSenFin = textSource.IndexOf(":");
+                                hdwadd = textDestination.Substring(position+1); //maybe we have to put lenght-1. 
+                                senactadd = textSource.Substring(positionSen, 10); //maybe i have to change it 
+                                foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
+                                {
+                                    if (sftwhw.hwAd == hdwadd)
+                                    {
+                                        sfadd = sftwhw.swAd;
+                                        xlWorkSheet_3.Cells[newLine, 2] = sfadd;
+                                        xlWorkSheet_3.Cells[newLine, 3] = hdwadd;
+                                        xlWorkSheet_3.Cells[newLine, 4] = senactadd;
+                                    }
+                                }
+                            }
                             newLine++; //the next we write in the next position.
                             
                         }
-
-
                     }
 
                     else if (textDestination == null && textSource == null)
@@ -532,10 +595,13 @@ namespace EPLAN_TIA
 
                 } while (!finished);
 
-                count++; //Prueba
+                count++;
                 finished = false;
             }
-          
+
+            //at the end
+
+            xlWorkSheet_3.Columns.AutoFit();
 
         }
 
@@ -554,14 +620,114 @@ namespace EPLAN_TIA
             SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook, misValue,1); //save the SPSDATEI
             SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, misValue,2); //save the SPS conexions
             SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue,3); //Save the new excel with all the info
-
+            
 
         }
+
+        //Compare the data of the EPLAN and the TIA Export. 
+
+        //public void ObteinAdressSftw(List<InformationPLC> informationSPs)
+        //{
+
+        //xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
+        //xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
+
+
+        //    int line = 2;            //the second line
+        //    int startColumn = 1;     //first column 
+        //    string textDestination;
+        //    string textSource;
+        //    string name;
+        //    string hdwadd; //obtein the value of the hw adress to compare with the software adress.
+        //    string sfadd; 
+        //    //int newLine = 2;
+        //    int position; //position of the ":"
+        //    bool finished = false;
+
+        //    //to use the new Excel 4. 
+
+
+        //        do
+        //        {
+        //            name = (string)(xlWorkSheet_3.Cells[line, startColumn] as Excel.Range).Value;
+        //            textSource = (string)(xlWorkSheet_3.Cells[line, startColumn+2] as Excel.Range).Value;
+        //            textDestination = (string)(xlWorkSheet_3.Cells[line, startColumn + 3] as Excel.Range).Value;
+
+        //            if (textDestination != null && textSource != null)
+        //            {
+        //                if (textSource.Contains(name)) //is a Exit from the PLC. Take the adresse
+        //                {
+        //                    position = textSource.IndexOf(":"); //look for that character
+        //                    hdwadd= textSource.Substring(position, textSource.Length); //maybe we have to put lenght-1. 
+
+        //                    //look for the hardware Adress in all the list. 
+
+        //                    foreach(InformationPLC item in informationSPs)
+        //                    {   
+        //                        if(name==item.eplanName) //if the name of the PLC is the same in that position of the list
+        //                        {
+        //                            foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
+        //                            {
+        //                                if (sftwhw.hwAd == hdwadd)
+        //                                {
+        //                                    sfadd = sftwhw.swAd;
+        //                                    xlWorkSheet_3.Cells[line, 2] = sfadd;
+        //                                }
+        //                            }
+        //                        }
+
+        //                    } 
+
+
+        //                }
+
+        //                else if(textDestination.Contains(name)) //thats an entrance in the PLC 
+        //                {
+        //                    position = textDestination.IndexOf(":"); //look for that character
+        //                    hdwadd = textDestination.Substring(position, textDestination.Length); //maybe we have to put lenght-1. 
+
+        //                    //look for the hardware Adress in all the list. 
+
+        //                    foreach (InformationPLC item in informationSPs)
+        //                    {
+        //                        if (name == item.eplanName) //if the name of the PLC is the same in that position of the list
+        //                        {
+        //                            foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
+        //                            {
+        //                                if (sftwhw.hwAd == hdwadd)
+        //                                {
+        //                                    sfadd = sftwhw.swAd;
+        //                                    xlWorkSheet_3.Cells[line, 2] = sfadd;
+        //                                }
+        //                            }
+        //                        }
+
+        //                    }
+        //                }
+
+        //            //newLine++; //the next we write in the next position.
+        //            }
+
+        //            else if (textDestination == null && textSource == null)
+        //            {
+        //                finished = true;
+        //                line = 2;
+        //            }
+
+
+        //            line++; //read the next line and write the software adress. 
+
+        //        } while (!finished);
+
+        //        finished = false;
+
+        //}
+
 
         //Save and close Excel
         public void SaveCloseExcel(string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
         {
-            Excel.Application xlAPP= xlApp;
+           Excel.Application xlAPP= xlApp;
            Excel.Workbook xlWorkbook1= xlWorkBook1;
 
             string pathString = System.IO.Path.Combine(savePath, "SubFolder");
@@ -578,8 +744,9 @@ namespace EPLAN_TIA
        
             if(seq==3)
             {
-                
-                xlWorkBook1.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault);
+                //he cambiado la mayuscula
+
+                xlWorkBook_3.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault);
           
             }
 
