@@ -481,6 +481,7 @@ namespace EPLAN_TIA
 
         }
 
+        //
       
         public void getinfConexion(int startColumn, List<InformationPLC> informationSPs)
         {
