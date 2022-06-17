@@ -395,7 +395,7 @@ namespace EPLAN_TIA
                         startAdresse = (string)(xlWorkSheet.Cells[line, 13] as Excel.Range).Value;
 
                         //aqui declarar bucle que por cada linea de cada geraete me guarde en el diccionario <direccion SW, direccion HW>
-
+                        //
                         do
                         {
                             //--Read the SWpin data
