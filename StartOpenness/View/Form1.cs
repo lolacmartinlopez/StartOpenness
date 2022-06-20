@@ -28,16 +28,13 @@ using Siemens.Engineering.SW.Blocks;
 using Siemens.Engineering.SW.Types;
 
 
-
-
-
 namespace EPLAN_TIA
 {
-    public partial class Form1 : Form
-    {
+    
+    public partial class Form1: Form
+    { 
         public Form1()
         {
-
             InitializeComponent();
             AppDomain CurrentDomain = AppDomain.CurrentDomain;
             CurrentDomain.AssemblyResolve += new ResolveEventHandler(MyResolver);
@@ -150,11 +147,7 @@ namespace EPLAN_TIA
         //Lista de objetos 
 
         List<InformationPLC> informationSPs = new List<InformationPLC>(); //keep all the information of the differents SPS avaible
-        List <conexionEPLAN> verbindungenEPLANs = new List<conexionEPLAN>(); //keep only the conexions for each IO port from a SPS (or articles that we can import in TIA)
-        
-        //creacion excel 
-
-      
+        List<conexionEPLAN> dataNotSimilar = new List<conexionEPLAN>();
 
         //Ejemplo de como guardar la informacion del primer Excel. 
         public class InformationPLC //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
@@ -177,21 +170,6 @@ namespace EPLAN_TIA
             }
         }
 
-        public class conexionEPLAN //aqui podemos direccionar sabiendo ya los datos de cada SPS (es decir, como se llama cada uno) Esto será para importarlo en TIA
-
-        {
-            public string codPLC { get; set; } //aqui guardamos solo el codigo identificativo del PLC al que pertenece 
-            public string modIO { get; set; } //aqui guardamos a cuales de los perifericos pertenece
-            public string pinIO { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
-
-            public conexionEPLAN (string codplc, string modio, string pinio)
-            {
-
-                codPLC = codplc; 
-                modIO = modio;
-                pinIO = pinio;
-            }
-        }
 
         public class SW_HW
         {
@@ -205,7 +183,7 @@ namespace EPLAN_TIA
             }
 
         }
-        //Ejemplo de como guardar la informacion. 
+        
         //verbindungenEPLAN lineSPS= new verbindungenEPLAN(); aqui le deberiamos de darle los datos que tengamos en las lineas. 
 
         
@@ -242,29 +220,18 @@ namespace EPLAN_TIA
             //Excel para exportar y guardar todos los datos. De primeras estará vacío.  
 
             xlApp_3 = new Excel.Application();
+            xlWorkBook_3 = xlApp_3.Workbooks.Add();
+            xlWorkSheet_3 = xlApp_3.Worksheets.Add();
 
-            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
+            //Excel with the conexions. 
 
-            /*Excel.Workbook*/  xlWorkBook_3 = xlApp_3.Workbooks.Add();
-            /*Excel.Worksheet*/ xlWorkSheet_3 = xlApp_3.Worksheets.Add();
+            xlApp_4=new Excel.Application();
+            xlWorkBook_4= xlApp_4.Workbooks.Open(txt_Path4.Text); 
+            xlWorkSheet_4 = xlWorkBook_4.Worksheets.get_Item(1); 
 
-
-
-            //xlApp_3= new Excel.Application();
-            //Excel.Workbooks xlWorkBook1_3 = xlApp_3.Workbooks;
-            //string pathNew = System.IO.Path.Combine(txt_Path2.Text, "NeueVerbindungen.xlsx"); 
-            //Excel.Workbook xlWorkbook_3 = xlApp_3.Workbooks.Add();
-            //Excel.Worksheet xlWorkSheet_3 = xlApp_3.Worksheets.Add();
-
-            //Excel.Workbook xlWorkBook_3 = this.xlApp_3.Workbooks.Add();
-            //Excel.Worksheet xlWorkSheet_3 = xlWorkBook_3.Worksheets.Add(); 
 
             //----------PRUEBA 1-------------
 
-
-            //ExcelLibrary.DataSetHelper.CreateWorkbook(path, DataSet dataset); 
-
-            //string pathNew = System.IO.Path.Combine(txt_Path2.Text, "NeueVerbindungen.xlsx"); 
 
             int startColumn =1; //in Excel DateiSPS must be the first column. In opposite in the excel Verbinden must be the second column. 
             int startColumn_2 = 9; //in Excel Verbindungen the first value ist for the source and the next for the destination
@@ -300,8 +267,9 @@ namespace EPLAN_TIA
             xlApp.Quit();
             xlWorkBook_2.Close(true);
             xlApp_2.Quit();
-            xlWorkBook_3.Close(true);
-            xlApp_3.Quit();
+
+            //xlWorkBook_3.Close(true);
+            //xlApp_3.Quit();
 
             //Kill the processes
 
@@ -315,15 +283,16 @@ namespace EPLAN_TIA
             Marshal.ReleaseComObject(xlApp_2);
 
 
+            //the third Excel keep opened and the excel from TIA will be opened, and compared with the other. 
+
+            CompareEPLANTIA();
+
+            ShowData();
+
+
             Marshal.ReleaseComObject(xlWorkBook_3);
             Marshal.ReleaseComObject(xlWorkSheet_3);
             Marshal.ReleaseComObject(xlApp_3);
-
-
-
-
-            ////the third Excel keep opened.
-            ///
 
             //ObteinAdressSftw(informationSPs);
             //SaveCloseExcel(txt_Path2.Text, xlApp_3, xlWorkBook_3, misValue, 4);
@@ -337,8 +306,6 @@ namespace EPLAN_TIA
             ////Add the dispositives. 
 
             //AddDisp(); 
-
-
 
             //creamos la correlación de datos entre el excel2 y las salidas de cada uno de los gerätes del programa. 
 
@@ -481,7 +448,7 @@ namespace EPLAN_TIA
 
         }
 
-        //
+        
       
         public void getinfConexion(int startColumn, List<InformationPLC> informationSPs)
         {
@@ -625,105 +592,66 @@ namespace EPLAN_TIA
 
         }
 
+       
         //Compare the data of the EPLAN and the TIA Export. 
 
-        //public void ObteinAdressSftw(List<InformationPLC> informationSPs)
-        //{
+        public void CompareEPLANTIA()
+        {
+            string path = txt_Path2.Text;
+            string nameWork = "SPS_neueVerbindungen.xlsx";
+            string exportFilename = @"" + path + @"\" + nameWork;
+            //xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
+            //xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
 
-        //xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
-        //xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
-
-
-        //    int line = 2;            //the second line
-        //    int startColumn = 1;     //first column 
-        //    string textDestination;
-        //    string textSource;
-        //    string name;
-        //    string hdwadd; //obtein the value of the hw adress to compare with the software adress.
-        //    string sfadd; 
-        //    //int newLine = 2;
-        //    int position; //position of the ":"
-        //    bool finished = false;
-
-        //    //to use the new Excel 4. 
+            string numIO=null;//IO number from the TIA export
+            string desIO = null; //Description IO from the TIA export
+            string numIO_1 = null;//IO number from the EPLAN export
+            string desIO_1 = null; //Description IO from the EPLAN export
+            int line=1;
+            bool finished = false; 
+            conexionEPLAN data = new conexionEPLAN(numIO, desIO, numIO_1, desIO_1);
 
 
-        //        do
-        //        {
-        //            name = (string)(xlWorkSheet_3.Cells[line, startColumn] as Excel.Range).Value;
-        //            textSource = (string)(xlWorkSheet_3.Cells[line, startColumn+2] as Excel.Range).Value;
-        //            textDestination = (string)(xlWorkSheet_3.Cells[line, startColumn + 3] as Excel.Range).Value;
+            //to use the new Excel 4. 
 
-        //            if (textDestination != null && textSource != null)
-        //            {
-        //                if (textSource.Contains(name)) //is a Exit from the PLC. Take the adresse
-        //                {
-        //                    position = textSource.IndexOf(":"); //look for that character
-        //                    hdwadd= textSource.Substring(position, textSource.Length); //maybe we have to put lenght-1. 
+            do
+            {
+                numIO = (string)(xlWorkSheet_4.Cells[line, 2] as Excel.Range).Value;
+                desIO = (string)(xlWorkSheet_4.Cells[line, 3] as Excel.Range).Value;
 
-        //                    //look for the hardware Adress in all the list. 
+                numIO_1 = (string)(xlWorkSheet_3.Cells[line+1, 2] as Excel.Range).Value;
+                desIO_1 = (string)(xlWorkSheet_3.Cells[line+1, 4] as Excel.Range).Value;
 
-        //                    foreach(InformationPLC item in informationSPs)
-        //                    {   
-        //                        if(name==item.eplanName) //if the name of the PLC is the same in that position of the list
-        //                        {
-        //                            foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
-        //                            {
-        //                                if (sftwhw.hwAd == hdwadd)
-        //                                {
-        //                                    sfadd = sftwhw.swAd;
-        //                                    xlWorkSheet_3.Cells[line, 2] = sfadd;
-        //                                }
-        //                            }
-        //                        }
+                if(numIO_1 == null && numIO==null && desIO== null && desIO_1==null) //when all the data is null the programm will stop
+                {
+                    finished = true;
+                }
+                //Search in the other excel and verify if the value ist the same for the name and for the number. 
 
-        //                    } 
+                //if((numIO==numIO_1 && desIO!=desIO_1)|| (numIO == numIO_1 && desIO != desIO_1)|| (numIO != numIO_1 && desIO != desIO_1))
 
+                if (!(numIO == numIO_1 && desIO == desIO_1)) //Data not similar in both. 
+                {
 
-        //                }
+                    data.pinIO = numIO;
+                    data.modIO = desIO;
+                    data.pinIO_1 = numIO_1;
+                    data.modIO_1 = desIO_1;
+                    dataNotSimilar.Add(data);
+                }
+                line++; 
+            } while (!finished); 
 
-        //                else if(textDestination.Contains(name)) //thats an entrance in the PLC 
-        //                {
-        //                    position = textDestination.IndexOf(":"); //look for that character
-        //                    hdwadd = textDestination.Substring(position, textDestination.Length); //maybe we have to put lenght-1. 
+        }
 
-        //                    //look for the hardware Adress in all the list. 
+        //Show the data that its not the similar in both. 
 
-        //                    foreach (InformationPLC item in informationSPs)
-        //                    {
-        //                        if (name == item.eplanName) //if the name of the PLC is the same in that position of the list
-        //                        {
-        //                            foreach (SW_HW sftwhw in item.adresseSW_HW) //look for the hardware Adress.
-        //                            {
-        //                                if (sftwhw.hwAd == hdwadd)
-        //                                {
-        //                                    sfadd = sftwhw.swAd;
-        //                                    xlWorkSheet_3.Cells[line, 2] = sfadd;
-        //                                }
-        //                            }
-        //                        }
-
-        //                    }
-        //                }
-
-        //            //newLine++; //the next we write in the next position.
-        //            }
-
-        //            else if (textDestination == null && textSource == null)
-        //            {
-        //                finished = true;
-        //                line = 2;
-        //            }
-
-
-        //            line++; //read the next line and write the software adress. 
-
-        //        } while (!finished);
-
-        //        finished = false;
-
-        //}
-
+        public void ShowData()
+        {
+            Form2 form2 = new Form2();
+            form2.ShowDialog();
+            form2.DisplayInfo(dataNotSimilar); 
+        }
 
         //Save and close Excel
         public void SaveCloseExcel(string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
@@ -742,13 +670,13 @@ namespace EPLAN_TIA
 
             }
 
-       
-            if(seq==3)
+
+            if (seq == 3)
             {
                 //he cambiado la mayuscula
 
-                xlWorkBook_3.SaveAs(savePath,Excel.XlFileFormat.xlWorkbookDefault);
-          
+                xlWorkBook_3.SaveAs(savePath, Excel.XlFileFormat.xlWorkbookDefault);
+
             }
 
             else
@@ -759,7 +687,7 @@ namespace EPLAN_TIA
 
             }
 
-          
+
         }
 
         //-- Functions for TIA Portal 
@@ -1251,6 +1179,18 @@ namespace EPLAN_TIA
             }
         }
 
-
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //Open a File Dialog
+            var dialog = new VistaOpenFileDialog();
+            //Set filter to show only Excel files
+            dialog.Filter = @"(*.xlsx)|*.xlsx |(*.xlsm)|*.xlsm";
+            //Show Dialog
+            dialog.ShowDialog();
+            //Get the complete path of the Excel file to be opened
+            string excelPath_4 = dialog.FileName;
+            //Show path selected in the upper textbox
+            txt_Path4.Text = excelPath_4;
+        }
     }
 }
