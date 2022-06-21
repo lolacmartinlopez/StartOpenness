@@ -259,34 +259,9 @@ namespace EPLAN_TIA
 
             txt_Status.Text = "Exporting information to the new Excel";
 
-            exportExcel();
 
-            //Close Excel 
-
-            xlWorkBook.Close(true);
-            xlApp.Quit();
-            xlWorkBook_2.Close(true);
-            xlApp_2.Quit();
-
-            //xlWorkBook_3.Close(true);
-            //xlApp_3.Quit();
-
-            //Kill the processes
-
-            Marshal.ReleaseComObject(xlWorkBook);
-            Marshal.ReleaseComObject(xlWorkSheet);
-            Marshal.ReleaseComObject(xlApp);
-
-
-            Marshal.ReleaseComObject(xlWorkBook_2);
-            Marshal.ReleaseComObject(xlWorkSheet_2);
-            Marshal.ReleaseComObject(xlApp_2);
-
-
-            //Marshal.ReleaseComObject(xlWorkBook_3);
-            //Marshal.ReleaseComObject(xlWorkSheet_3);
-            //Marshal.ReleaseComObject(xlApp_3);
-
+            SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook,xlWorkSheet, misValue); //save the SPSDATEI
+            SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, xlWorkSheet_2, misValue); //save the SPS conexions
 
             //the third Excel keep opened and the excel from TIA will be opened, and compared with the other. 
 
@@ -297,15 +272,19 @@ namespace EPLAN_TIA
 
             //ShowData();
 
-            //Close the excel 3. 
+            //Close the excel 3 and excel 4. 
+            string path = txt_Path2.Text;
+            string nameWork = "EPLAN_Datei.xlsx";
+            string exportFilename = @"" + path + @"\" + nameWork;
 
-            xlWorkBook_3.Close(true);
-            xlApp_3.Quit();
-            Marshal.ReleaseComObject(xlWorkBook_3);
-            Marshal.ReleaseComObject(xlWorkSheet_3);
-            Marshal.ReleaseComObject(xlApp_3);
 
-            SaveCloseExcel(exportPath, xlApp_4, xlWorkBook_4, misValue, 4); 
+            xlWorkBook_3.SaveAs(exportFilename, Excel.XlFileFormat.xlWorkbookDefault);
+
+
+            //Save the excel 
+
+            SaveCloseExcel(txt_Path4.Text, xlApp_4, xlWorkBook_4,xlWorkSheet_4, misValue); 
+
 
 
             //ObteinAdressSftw(informationSPs);
@@ -482,17 +461,8 @@ namespace EPLAN_TIA
             //int numPLC = informationSPs.Count;
             //int i = 0; 
 
-
-
             xlWorksheet.Activate();
-            //xlWorksheet.Cells[1, 1] = "PLC/Display";
-            //xlWorksheet.Cells[1, 2] = "Software Adress In/Out"; //keep the sftwr adress
-            //xlWorksheet.Cells[1, 3] = "Hardware Adress In/Out"; //keep the sftwr adress
-            //xlWorksheet.Cells[1, 5] = "Source";
-            //xlWorksheet.Cells[1, 6] = "Destination";
-            //xlWorksheet.Cells[1, 4] = "Sensor/Aktuator";
-
-
+       
             //Excel.Range excelSize= (Excel.Range)xlWorkSheet_2.Columns;
             //int excelSizenum = (int)excelSize.ColumnWidth; 
             int count = 0; 
@@ -588,36 +558,13 @@ namespace EPLAN_TIA
         }
 
 
-        //Export to excel
-        public void exportExcel ()
-        {
-           
-
-
-            string path = txt_Path2.Text;
-            string nameWork = "SPS_neueVerbindungen.xlsx";
-            string exportFilename = @"" + path + @"\" + nameWork;
-
-
-            SaveCloseExcel(txt_Path1.Text, xlApp, xlWorkBook, misValue,1); //save the SPSDATEI
-            SaveCloseExcel(txt_Path3.Text, xlApp_2, xlWorkBook_2, misValue,2); //save the SPS conexions
-            SaveCloseExcel(exportFilename, xlApp_3, xlWorkBook_3, misValue,3); //Save the new excel with all the info
-            
-
-        }
-
 
         //Compare the data of the EPLAN and the TIA Export. 
        
 
         public void CompareEPLANTIA(Excel.Worksheet xlWorksheet)
         {
-            //    string path = txt_Path2.Text;
-            //    string nameWork = "SPS_neueVerbindungen.xlsx";
-            //    string exportFilename = @"" + path + @"\" + nameWork;
-            //    xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
-            //    xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
-
+           
             string numIO=null;//IO number from the TIA export
             string desIO = null; //Description IO from the TIA export
             string numIO_1 = null;//IO number from the EPLAN export
@@ -667,6 +614,9 @@ namespace EPLAN_TIA
                         {
                             data = new conexionEPLAN(numIO,desIO,numIO_1,desIO_1, "The adress has not the correct name."); //create a new variable to refer to that in the memory (we work with List)
                             dataNotSimilar.Add(data);
+
+                            xlWorkSheet_4.Cells[line,4].Interior.Color= System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Orange);
+                            xlWorkSheet_4.Cells[line, 4] = "The adress has not the correct name."; 
                         }
                     }
 
@@ -674,8 +624,10 @@ namespace EPLAN_TIA
                 }
                 catch
                 {
-                    data = new conexionEPLAN(numIO, desIO, "", "", "That adress doesn´t appear in EPLAN"); //create a new variable to refer to that in the memory (we work with List)
+                    data = new conexionEPLAN(numIO, desIO, "", "", "The adress doesn´t appear in EPLAN"); //create a new variable to refer to that in the memory (we work with List)
                     dataNotSimilar.Add(data);
+                    xlWorkSheet_4.Cells[line, 4].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+                    xlWorkSheet_4.Cells[line, 4] = "The adress doesn´t appear in EPLAN";
                 }
 
 
@@ -692,8 +644,9 @@ namespace EPLAN_TIA
                 //}
 
                 line++;
-            } while (!finished); 
+            } while (!finished);
 
+            xlWorkSheet_4.Columns.AutoFit(); 
         }
 
         //Show the data that its not the similar in both. 
@@ -707,13 +660,14 @@ namespace EPLAN_TIA
         }
 
         //Save and close Excel
-        public void SaveCloseExcel(string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1,object misValue, int seq)
+        public void SaveCloseExcel(string savePath,Excel.Application xlApp, Excel.Workbook xlWorkBook1, Excel.Worksheet xlSheet, object misValue)
         {
            Excel.Application xlAPP= xlApp;
            Excel.Workbook xlWorkbook1= xlWorkBook1;
+           Excel.Worksheet xlWorksheet1= xlSheet;
 
-            string pathString = System.IO.Path.Combine(savePath, "SubFolder");
-            string filename = System.IO.Path.GetFileName(savePath);
+           string pathString = System.IO.Path.Combine(savePath, "SubFolder");
+           //string filename = System.IO.Path.GetFileName(savePath);
             
 
             if (Directory.Exists(pathString))
@@ -724,22 +678,29 @@ namespace EPLAN_TIA
             }
 
 
-            //if (seq == 3)
-            //{
-            //    //he cambiado la mayuscula
-
-            //    xlWorkBook_3.SaveAs(savePath, Excel.XlFileFormat.xlWorkbookDefault);
-
-            //}
-
-            //else
-            //{
+            if (savePath.Contains(".xlsx")) 
+            {
                 savePath = savePath.Replace(".xlsx", " ");
-                savePath = savePath + "(1).xlsx";
-                xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
+                savePath = savePath + "_neue.xlsx";
+            }
+            if (savePath.Contains(".xlsm"))
+            {
+                savePath = savePath.Replace(".xlsm", " ");
+                savePath = savePath + "_neue.xlsm";
+            }
 
-            //}
+            xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
 
+            //Close the book and the APP. 
+
+                xlWorkbook1.Close(true);
+                xlAPP.Quit();
+
+            //Kill the processes
+
+            Marshal.ReleaseComObject(xlWorkbook1);
+            Marshal.ReleaseComObject(xlWorksheet1);
+            Marshal.ReleaseComObject(xlAPP);
 
         }
 
