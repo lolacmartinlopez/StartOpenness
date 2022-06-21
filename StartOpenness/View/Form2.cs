@@ -115,17 +115,25 @@ namespace EPLAN_TIA
 
         public void DisplayInfo(List <conexionEPLAN> dataNotSimilar)
         {
+            listBox1.Items.Clear();
+            listBox1.DataSource = null;
 
-
-            foreach( conexionEPLAN conexion in dataNotSimilar)
+            foreach (conexionEPLAN conexion in dataNotSimilar)
             {
-                ListViewItem itemAdd = new ListViewItem();
-                itemAdd.Checked = true;
-                //itemAdd.SubItems.Add();
-                itemAdd.SubItems[0].Text = conexion.pinIO + conexion.modIO;
-                itemAdd.SubItems[1].Text = conexion.pinIO_1 + conexion.modIO_1; 
-                listView1.Items.AddRange(new ListViewItem[] { itemAdd });
-                
+                if (conexion == null)
+                {
+
+                    listBox1.Items.Add(conexion);
+                    
+                }
+                //ListViewItem itemAdd = new ListViewItem();
+                //itemAdd.Checked = true;
+                //itemAdd = listBox1.Items.Add(conexion.pinIO + conexion.modIO);
+                //itemAdd.SubItems.Add(conexion.pinIO_1 + conexion.modIO_1);
+                //itemAdd.SubItems[1].Text = conexion.pinIO_1 + conexion.modIO_1; 
+                //listView1.Items.AddRange(new ListViewItem[] { itemAdd });
+
+
             }
         }
 

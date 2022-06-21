@@ -32,9 +32,9 @@ namespace EPLAN_TIA
         public string pinIO { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
         public string modIO_1 { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
         public string pinIO_1 { get; set; }  //aqui guardamos el dato de que PIN dentro del modIO iría conectado.
+        public string AddInfo { get; set; }
 
-
-        public conexionEPLAN(/*string codplc*/  string pinio, string modio, string pinio_1, string modio_1)
+        public conexionEPLAN(/*string codplc*/ string pinio, string modio, string pinio_1, string modio_1, string addinfo)
         {
 
             //codPLC = codplc; 
@@ -42,6 +42,7 @@ namespace EPLAN_TIA
             pinIO = pinio;
             modIO_1 = modio_1;
             pinIO_1 = pinio_1;
+            AddInfo = addinfo;
         }
     }
 

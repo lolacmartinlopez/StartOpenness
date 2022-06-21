@@ -36,18 +36,13 @@ namespace EPLAN_TIA
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem(new string[] {
-            "",
-            ""}, -1);
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form2));
             this.panel1 = new System.Windows.Forms.Panel();
             this.version = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
-            this.listView1 = new System.Windows.Forms.ListView();
-            this.EPLAN_Data = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.TIA_Data = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -59,10 +54,13 @@ namespace EPLAN_TIA
             this.button_Maximize = new System.Windows.Forms.Button();
             this.button_Exit = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.conexionEPLANBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.conexionEPLANBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -107,8 +105,8 @@ namespace EPLAN_TIA
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.Color.White;
+            this.panel2.Controls.Add(this.listBox1);
             this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.listView1);
             this.panel2.Controls.Add(this.label4);
             this.panel2.Controls.Add(this.label5);
             this.panel2.Controls.Add(this.label3);
@@ -127,39 +125,6 @@ namespace EPLAN_TIA
             this.label1.Size = new System.Drawing.Size(306, 18);
             this.label1.TabIndex = 49;
             this.label1.Text = "The next Data are different in both documents";
-            // 
-            // listView1
-            // 
-            this.listView1.AccessibleRole = System.Windows.Forms.AccessibleRole.None;
-            this.listView1.AllowColumnReorder = true;
-            this.listView1.AllowDrop = true;
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.EPLAN_Data,
-            this.TIA_Data});
-            this.listView1.FullRowSelect = true;
-            this.listView1.GridLines = true;
-            this.listView1.HideSelection = false;
-            listViewItem1.UseItemStyleForSubItems = false;
-            this.listView1.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem1});
-            this.listView1.Location = new System.Drawing.Point(24, 62);
-            this.listView1.Name = "listView1";
-            this.listView1.OwnerDraw = true;
-            this.listView1.Size = new System.Drawing.Size(385, 361);
-            this.listView1.TabIndex = 48;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.UseWaitCursor = true;
-            this.listView1.View = System.Windows.Forms.View.Details;
-            // 
-            // EPLAN_Data
-            // 
-            this.EPLAN_Data.Text = "EPLAN Data";
-            this.EPLAN_Data.Width = 192;
-            // 
-            // TIA_Data
-            // 
-            this.TIA_Data.Text = "TIA Data";
-            this.TIA_Data.Width = 316;
             // 
             // label4
             // 
@@ -311,6 +276,21 @@ namespace EPLAN_TIA
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
+            // listBox1
+            // 
+            this.listBox1.BackColor = System.Drawing.SystemColors.AppWorkspace;
+            this.listBox1.DataSource = this.conexionEPLANBindingSource;
+            this.listBox1.FormattingEnabled = true;
+            this.listBox1.Location = new System.Drawing.Point(30, 71);
+            this.listBox1.MultiColumn = true;
+            this.listBox1.Name = "listBox1";
+            this.listBox1.Size = new System.Drawing.Size(366, 355);
+            this.listBox1.TabIndex = 50;
+            // 
+            // conexionEPLANBindingSource
+            // 
+            this.conexionEPLANBindingSource.DataSource = typeof(EPLAN_TIA.conexionEPLAN);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -332,6 +312,7 @@ namespace EPLAN_TIA
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.conexionEPLANBindingSource)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -355,9 +336,9 @@ namespace EPLAN_TIA
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label1;
-        public System.Windows.Forms.ColumnHeader EPLAN_Data;
-        public System.Windows.Forms.ColumnHeader TIA_Data;
-        public System.Windows.Forms.ListView listView1;
+        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.BindingSource conexionEPLANBindingSource;
+        private System.ComponentModel.IContainer components;
     }
 }
 

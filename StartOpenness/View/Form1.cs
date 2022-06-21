@@ -251,7 +251,7 @@ namespace EPLAN_TIA
 
             //read the second excel but only with the data from the SPS of the previous data. 
 
-            getinfConexion(startColumn_2,informationSPs);
+            getinfConexion(startColumn_2,informationSPs,xlWorkSheet_3);
 
             txt_Status.Text = "The information of the Excel SPS Verbindungen was correct readed";
 
@@ -283,18 +283,33 @@ namespace EPLAN_TIA
             Marshal.ReleaseComObject(xlApp_2);
 
 
+            //Marshal.ReleaseComObject(xlWorkBook_3);
+            //Marshal.ReleaseComObject(xlWorkSheet_3);
+            //Marshal.ReleaseComObject(xlApp_3);
+
+
             //the third Excel keep opened and the excel from TIA will be opened, and compared with the other. 
 
-            CompareEPLANTIA();
+            txt_Status.Text = "Comparing data between both programs";
 
-            ShowData();
+            CompareEPLANTIA(xlWorkSheet_3);
 
 
+            //ShowData();
+
+            //Close the excel 3. 
+
+            xlWorkBook_3.Close(true);
+            xlApp_3.Quit();
             Marshal.ReleaseComObject(xlWorkBook_3);
             Marshal.ReleaseComObject(xlWorkSheet_3);
             Marshal.ReleaseComObject(xlApp_3);
 
+            SaveCloseExcel(exportPath, xlApp_4, xlWorkBook_4, misValue, 4); 
+
+
             //ObteinAdressSftw(informationSPs);
+
             //SaveCloseExcel(txt_Path2.Text, xlApp_3, xlWorkBook_3, misValue, 4);
 
             //MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
@@ -450,9 +465,9 @@ namespace EPLAN_TIA
 
         
       
-        public void getinfConexion(int startColumn, List<InformationPLC> informationSPs)
+        public void getinfConexion(int startColumn, List<InformationPLC> informationSPs,Excel.Worksheet xlWorksheet )
         {
-            int line = 2; 
+            int line = 2;  //read from the second line. 
             string textDestination;
             string textSource;
             string name;
@@ -462,20 +477,20 @@ namespace EPLAN_TIA
             int positionSen;
             int positionSenFin; 
             int position; 
-            int newLine = 2;
+            int newLine =1; //write from the first line. 
             bool finished=false;
             //int numPLC = informationSPs.Count;
             //int i = 0; 
 
-           
 
-            xlWorkSheet_3.Activate();
-            xlWorkSheet_3.Cells[1, 1] = "PLC/Display";
-            xlWorkSheet_3.Cells[1, 2] = "Software Adress In/Out"; //keep the sftwr adress
-            xlWorkSheet_3.Cells[1, 3] = "Hardware Adress In/Out"; //keep the sftwr adress
-            xlWorkSheet_3.Cells[1, 5] = "Source";
-            xlWorkSheet_3.Cells[1, 6] = "Destination";
-            xlWorkSheet_3.Cells[1, 4] = "Sensor/Aktuator";
+
+            xlWorksheet.Activate();
+            //xlWorksheet.Cells[1, 1] = "PLC/Display";
+            //xlWorksheet.Cells[1, 2] = "Software Adress In/Out"; //keep the sftwr adress
+            //xlWorksheet.Cells[1, 3] = "Hardware Adress In/Out"; //keep the sftwr adress
+            //xlWorksheet.Cells[1, 5] = "Source";
+            //xlWorksheet.Cells[1, 6] = "Destination";
+            //xlWorksheet.Cells[1, 4] = "Sensor/Aktuator";
 
 
             //Excel.Range excelSize= (Excel.Range)xlWorkSheet_2.Columns;
@@ -497,17 +512,12 @@ namespace EPLAN_TIA
 
                         if (textDestination.Contains(item.eplanName) || textSource.Contains(item.eplanName))
                         {
-                            ////delete the symbol "="
-                            //name = item.eplanName.Replace('=', ' ');
-                            //textDestination = textDestination.Replace('=', ' '); //the name have "=" at the first position, it makes an error in Excel
-                            //textSource = textSource.Replace('=', ' ');
-
                             //sirve si tenemos un gerate de importancia(de importar en TIA) tanto si está en ziel como en destination
-                            
-                           
-                            xlWorkSheet_3.Cells[newLine, 1] = name; 
-                            xlWorkSheet_3.Cells[newLine, 5] = textSource;
-                            xlWorkSheet_3.Cells[newLine, 6] = textDestination;
+
+
+                            xlWorksheet.Cells[newLine, 1] = name;
+                            xlWorksheet.Cells[newLine, 5] = textSource;
+                            xlWorksheet.Cells[newLine, 6] = textDestination;
                             
 
                             if (textSource.Contains(item.eplanName)) //is a Exit from the PLC. Take the adresse
@@ -522,9 +532,9 @@ namespace EPLAN_TIA
                                     if (sftwhw.hwAd == hdwadd)
                                     {
                                         sfadd = sftwhw.swAd;
-                                        xlWorkSheet_3.Cells[newLine, 2] = sfadd;
-                                        xlWorkSheet_3.Cells[newLine, 3] = hdwadd;
-                                        xlWorkSheet_3.Cells[newLine, 4] = senactadd; 
+                                        xlWorksheet.Cells[newLine, 2] = sfadd;
+                                        xlWorksheet.Cells[newLine, 3] = hdwadd;
+                                        xlWorksheet.Cells[newLine, 4] = senactadd; 
                                     }
                                 }
                             }
@@ -541,9 +551,9 @@ namespace EPLAN_TIA
                                     if (sftwhw.hwAd == hdwadd)
                                     {
                                         sfadd = sftwhw.swAd;
-                                        xlWorkSheet_3.Cells[newLine, 2] = sfadd;
-                                        xlWorkSheet_3.Cells[newLine, 3] = hdwadd;
-                                        xlWorkSheet_3.Cells[newLine, 4] = senactadd;
+                                        xlWorksheet.Cells[newLine, 2] = sfadd;
+                                        xlWorksheet.Cells[newLine, 3] = hdwadd;
+                                        xlWorksheet.Cells[newLine, 4] = senactadd;
                                     }
                                 }
                             }
@@ -569,7 +579,11 @@ namespace EPLAN_TIA
 
             //at the end
 
-            xlWorkSheet_3.Columns.AutoFit();
+            //Excel.Range IO = xlWorksheet.Columns;
+
+            //IO.Sort(IO.Columns[2], )
+            xlWorksheet.Columns.AutoFit();
+            
 
         }
 
@@ -592,54 +606,92 @@ namespace EPLAN_TIA
 
         }
 
-       
-        //Compare the data of the EPLAN and the TIA Export. 
 
-        public void CompareEPLANTIA()
+        //Compare the data of the EPLAN and the TIA Export. 
+       
+
+        public void CompareEPLANTIA(Excel.Worksheet xlWorksheet)
         {
-            string path = txt_Path2.Text;
-            string nameWork = "SPS_neueVerbindungen.xlsx";
-            string exportFilename = @"" + path + @"\" + nameWork;
-            //xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
-            //xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
+            //    string path = txt_Path2.Text;
+            //    string nameWork = "SPS_neueVerbindungen.xlsx";
+            //    string exportFilename = @"" + path + @"\" + nameWork;
+            //    xlWorkBook_3 = xlApp_3.Workbooks.Open(exportFilename);
+            //    xlWorkSheet_3 = xlWorkBook_3.Worksheets.get_Item(1);
 
             string numIO=null;//IO number from the TIA export
             string desIO = null; //Description IO from the TIA export
             string numIO_1 = null;//IO number from the EPLAN export
             string desIO_1 = null; //Description IO from the EPLAN export
+            string addInfo = null; 
             int line=1;
-            bool finished = false; 
-            conexionEPLAN data = new conexionEPLAN(numIO, desIO, numIO_1, desIO_1);
+            bool finished = false;
+            Excel.Range currentFind=null;
+            Excel.Range currentFind_1=null;
+            Excel.Range range1;
+            Excel.Range range2; 
+            conexionEPLAN data = new conexionEPLAN("null", "null", "null", "null", "null"); //create a new linked list. 
 
 
             //to use the new Excel 4. 
 
             do
             {
-                numIO = (string)(xlWorkSheet_4.Cells[line, 2] as Excel.Range).Value;
-                desIO = (string)(xlWorkSheet_4.Cells[line, 3] as Excel.Range).Value;
 
-                numIO_1 = (string)(xlWorkSheet_3.Cells[line+1, 2] as Excel.Range).Value;
-                desIO_1 = (string)(xlWorkSheet_3.Cells[line+1, 4] as Excel.Range).Value;
+                numIO = (string)(xlWorkSheet_4.Cells[line, 1] as Excel.Range).Value;
+                desIO = (string)(xlWorkSheet_4.Cells[line, 2] as Excel.Range).Value;
 
-                if(numIO_1 == null && numIO==null && desIO== null && desIO_1==null) //when all the data is null the programm will stop
+                //take the second and the forth column from the excel. 
+
+                range1 = xlWorksheet.Columns["B:B"] as Excel.Range;
+                //range2 = xlWorksheet.Columns["D:D"] as Excel.Range;
+
+                //search for that data. In currentFind will have the value of the position. 
+
+                try
                 {
-                    finished = true;
+                    currentFind = range1.Find(numIO);//look for numIO on the excel 3. Later verify if it has the same name or not. 
+                    //currentFind_1 = range2.Find(desIO);//look for desIO on the excel 3.
+
+                    if (currentFind.Find(numIO) != null /*|| currentFind_1.Find(desIO) != null*/) //at least one exist. 
+                    {
+                        numIO_1 = (string)(xlWorksheet.Cells[currentFind.Row,2] as Excel.Range).Value; //will be the same value as numIO
+                        desIO_1 = (string)(xlWorksheet.Cells[currentFind.Row,4] as Excel.Range).Value; //take what name have 
+
+
+                        if (desIO == null && numIO == null) //when all the data is null the programm will stop
+                        {
+                            finished = true;
+                        }
+
+                        if (desIO!=desIO_1) //Data of the Adress and the name are not correct. 
+                        {
+                            data = new conexionEPLAN(numIO,desIO,numIO_1,desIO_1, "The adress has not the correct name."); //create a new variable to refer to that in the memory (we work with List)
+                            dataNotSimilar.Add(data);
+                        }
+                    }
+
+                    
                 }
-                //Search in the other excel and verify if the value ist the same for the name and for the number. 
-
-                //if((numIO==numIO_1 && desIO!=desIO_1)|| (numIO == numIO_1 && desIO != desIO_1)|| (numIO != numIO_1 && desIO != desIO_1))
-
-                if (!(numIO == numIO_1 && desIO == desIO_1)) //Data not similar in both. 
+                catch
                 {
-
-                    data.pinIO = numIO;
-                    data.modIO = desIO;
-                    data.pinIO_1 = numIO_1;
-                    data.modIO_1 = desIO_1;
+                    data = new conexionEPLAN(numIO, desIO, "", "", "That adress doesn´t appear in EPLAN"); //create a new variable to refer to that in the memory (we work with List)
                     dataNotSimilar.Add(data);
                 }
-                line++; 
+
+
+                //Search in the other excel and verify if the value ist the same for the name and for the number. 
+                //if((numIO==numIO_1 && desIO!=desIO_1)|| (numIO == numIO_1 && desIO != desIO_1)|| (numIO != numIO_1 && desIO != desIO_1))
+                //if (!(numIO == numIO_1 && desIO == desIO_1)) //Data not similar in both. 
+                //{
+
+                //    data.pinIO = numIO;
+                //    data.modIO = desIO;
+                //    data.pinIO_1 = numIO_1;
+                //    data.modIO_1 = desIO_1;
+                //    dataNotSimilar.Add(data);
+                //}
+
+                line++;
             } while (!finished); 
 
         }
@@ -649,6 +701,7 @@ namespace EPLAN_TIA
         public void ShowData()
         {
             Form2 form2 = new Form2();
+            
             form2.ShowDialog();
             form2.DisplayInfo(dataNotSimilar); 
         }
@@ -671,21 +724,21 @@ namespace EPLAN_TIA
             }
 
 
-            if (seq == 3)
-            {
-                //he cambiado la mayuscula
+            //if (seq == 3)
+            //{
+            //    //he cambiado la mayuscula
 
-                xlWorkBook_3.SaveAs(savePath, Excel.XlFileFormat.xlWorkbookDefault);
+            //    xlWorkBook_3.SaveAs(savePath, Excel.XlFileFormat.xlWorkbookDefault);
 
-            }
+            //}
 
-            else
-            {
+            //else
+            //{
                 savePath = savePath.Replace(".xlsx", " ");
                 savePath = savePath + "(1).xlsx";
                 xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
 
-            }
+            //}
 
 
         }
