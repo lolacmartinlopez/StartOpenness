@@ -47,58 +47,7 @@ namespace EPLAN_TIA
 
 
         //English variables
-        string errorMessageEN = "Error: ";
-
-        string executingEN = "Programm is in execution...";
-
-        string programmFinishedEN = "The programm has finished";
-        string programmStoppedEN = "The programm has been stopped due to an error: there are variables with names longer than 15" +
-            " characters. Please fix it and try again.";
-
-        string nothingFoundEN = "No information was found in the Excel. Please check it and try again.";
-
-        string longNamesTextBegginEN = "The following variables have a name longer than 15 characters: \n \n";
-        string longNamesTextEndEN = "\nPlease fix it and try again.";
-
-        string txtPathField1EN = "Select path where the Excel file is located";
-        string txtPathField2EN = "Select path where the .lc files will be saved";
-        string txtCheckBoxEN = "Use Excels folder";
-
-        string browseEN = "Browse";
-
-        string statusEN = "Status";
-        string invalidPathEN = "Invalid path";
-
-        //new English variables 
-
-        string closeAllInstances = "All TIA Portal instances will be closed. Do you want to continue?";
-        string closeAllInstancesWarning = "Close all TIA Portal instances";
-
-        //German variables
-        string errorMessageDE = "Fehler: ";
-
-        string executingDE = "Programm wird ausgeführt...";
-
-        string programmFinishedDE = "Das Programm ist beendet";
-
-        string programmStoppedDE = "Das Programm wurde aufgrund eines Fehlers gestoppt: es gibt Variablen mit " +
-            "Namen, die länger als 15 Zeichen sind. Bitte beheben Sie den Fehler und versuchen Sie es erneut.";
-
-        string nothingFoundDE = "Keine Information wurde in der Excel-Datei gefunden. Bitte überprüfen Sie es und versuchen Sie es erneut.";
-
-        string longNamesTextBegginDE = "Die folgenden Variablen haben einen Namen länger als 15 Zeichen: \n \n";
-        string longNamesTextEndDE = "\nBitte beheben Sie den Fehler und versuchen Sie es erneut.";
-
-        string txtPathField1DE = "Wähle den Pfad, in dem sich die Excel Datei befindet";
-        string txtPathField2DE = "Wähle den Pfad, in dem die .lc Dateien gespeichert werden sollen";
-        string txtCheckBoxDE = "Excels Ordner verwenden";
-
-        string browseDE = "Durchsuchen";
-
-        string statusDE = "Status";
-        string invalidPathDE = "Ungültiger Pfad";
-
-        List<conexionEPLAN> dataNotSimilar= new List<conexionEPLAN>();
+        
 
 
         //Load form
@@ -115,15 +64,14 @@ namespace EPLAN_TIA
 
         public void DisplayInfo(List <conexionEPLAN> dataNotSimilar)
         {
-            listBox1.Items.Clear();
-            listBox1.DataSource = null;
+            
 
             foreach (conexionEPLAN conexion in dataNotSimilar)
             {
                 if (conexion == null)
                 {
 
-                    listBox1.Items.Add(conexion);
+                    
                     
                 }
                 //ListViewItem itemAdd = new ListViewItem();
@@ -247,7 +195,10 @@ namespace EPLAN_TIA
         SendMessage(Handle, 0x112, 0xf012, 0);
     }
 
+        private void label1_Click(object sender, EventArgs e)
+        {
 
+        }
     }
 }
 

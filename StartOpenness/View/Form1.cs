@@ -103,12 +103,12 @@ namespace EPLAN_TIA
 
         string nothingFoundEN = "No information was found in the Excel. Please check it and try again.";
 
-        string longNamesTextBegginEN="The following variables have a name longer than 15 characters: \n \n";
-        string longNamesTextEndEN="\nPlease fix it and try again.";
 
-        string txtPathField1EN = "Select path where the Excel file is located";
-        string txtPathField2EN = "Select path where the .lc files will be saved";
-       
+        string txtPathField1EN = "Select path where the Excel file PLC DATA (EPLAN) is located";
+        string txtPathField2EN = "Select path where the Excel file Data Conexions (EPLAN) is located";
+        string txtPathField3EN = "Select path where the Excel file export (TIA) is located";
+        string txtPathField4EN = "Select older to save the data backups";
+
         string browseEN = "Browse";
 
         string statusEN="Status";
@@ -134,9 +134,10 @@ namespace EPLAN_TIA
         string longNamesTextBegginDE = "Die folgenden Variablen haben einen Namen länger als 15 Zeichen: \n \n";
         string longNamesTextEndDE = "\nBitte beheben Sie den Fehler und versuchen Sie es erneut.";
 
-        string txtPathField1DE = "Wähle den Pfad, in dem sich die Excel Datei befindet";
-        string txtPathField2DE = "Wähle den Pfad, in dem die .lc Dateien gespeichert werden sollen";
-       
+        string txtPathField1DE = "Wähle den Pfad, in dem sich die Excel SPS aus EPLAN befindet";
+        string txtPathField2DE = "Wähle den Pfad, in dem sich die Excel Verbindungen aus EPLAN befindet";
+        string txtPathField3DE = "Wähle den Pfad, in dem sich die Excel Datei Export aus TIA befindet";
+        string txtPathField4DE = "Wählen Sie den Ordner zum Speichern der Sicherungen Datein";
 
         string browseDE = "Durchsuchen";
 
@@ -183,9 +184,7 @@ namespace EPLAN_TIA
 
         }
         
-        //verbindungenEPLAN lineSPS= new verbindungenEPLAN(); aqui le deberiamos de darle los datos que tengamos en las lineas. 
-
-        
+       
 
         //Load form
         private void Form1_Load(object sender, EventArgs e)
@@ -194,42 +193,39 @@ namespace EPLAN_TIA
             //Set visualisation to normal size
             WindowState = FormWindowState.Normal;
             //Load texts in english by default
-            languageEN();
+
+            if (languageSelected == "DE")
+            {
+                languageDE();
+            }
+            else
+            {
+                languageEN();
+            }
+
 
         }
        
         //Start the process
         public void btn_Start_Click(object sender, EventArgs e)
         {
-            //Excel variables parte 1 del proceso (obtener datos del SPS)
-
-
-
             xlApp = new Excel.Application(); 
-            xlWorkBook = xlApp.Workbooks.Open(txt_Path1.Text); //se abre primero el Excel con los programas
-            xlWorkSheet = xlWorkBook.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
-
-
-           //Excel variables puntos parte 2 del proceso (obtener datos de Verbindungen), pero debe ser abriendo otra ventana de excel 
+            xlWorkBook = xlApp.Workbooks.Open(txt_Path1.Text); 
+            xlWorkSheet = xlWorkBook.Worksheets.get_Item(1);
 
             xlApp_2 = new Excel.Application();
-            xlWorkBook_2 = xlApp_2.Workbooks.Open(txt_Path3.Text); //se abre primero el Excel con los programas
-            xlWorkSheet_2 = xlWorkBook_2.Worksheets.get_Item(1); //abrimos solo la primera hoja del excel
-
-            //Excel para exportar y guardar todos los datos. De primeras estará vacío.  
+            xlWorkBook_2 = xlApp_2.Workbooks.Open(txt_Path3.Text); 
+            xlWorkSheet_2 = xlWorkBook_2.Worksheets.get_Item(1);
 
             xlApp_3 = new Excel.Application();
             xlWorkBook_3 = xlApp_3.Workbooks.Add();
             xlWorkSheet_3 = xlApp_3.Worksheets.Add();
 
-            //Excel with the conexions. 
 
             xlApp_4=new Excel.Application();
             xlWorkBook_4= xlApp_4.Workbooks.Open(txt_Path4.Text); 
             xlWorkSheet_4 = xlWorkBook_4.Worksheets.get_Item(1); 
 
-
-            //----------PRUEBA 1-------------
 
 
             int startColumn =1; //in Excel DateiSPS must be the first column. In opposite in the excel Verbinden must be the second column. 
@@ -270,17 +266,13 @@ namespace EPLAN_TIA
             CompareEPLANTIA(xlWorkSheet_3);
 
 
-            //ShowData();
-
             //Close the excel 3 and excel 4. 
 
             string path = txt_Path2.Text;
             string nameWork = "EPLAN_Datei.xlsx";
             string exportFilename = @"" + path + @"\" + nameWork;
 
-
             xlWorkBook_3.SaveAs(exportFilename, Excel.XlFileFormat.xlWorkbookDefault);
-
 
             //Save the excel 
 
@@ -290,12 +282,13 @@ namespace EPLAN_TIA
             //Show message
 
             txt_Status.Text = programmFinished;
+
            
         }
         
         //--Functions for the first part of the APP. (Obtein the data of the EPLAN) 
 
-        public void getinfoPLC(int startColumn) //le pasamos en cada excel que columna debe empezar a buscar. 
+        public void getinfoPLC(int startColumn) 
         {
             int cpuPPALES=0; //count the number of CPU with IP. 
             string serialNum;
@@ -308,10 +301,10 @@ namespace EPLAN_TIA
             List<SW_HW> adresseSW_HW1;      
             bool finished = false;
             bool finished1= false;
-            int line = 2;       //the first line ist 2 (the 1 ist only names)
-            string anzahlText;  //controlar si tenemos mas dispositivos relevantes del SPS o no. 
-            int colRead = 15;   //aqui debemos de tener en cuenta por que columna vamos leyendo, ya que el numero de E/S es diferente en los perifericos que tengamos.
-            int iList = 1;      //write in the list. 
+            int line = 2;       
+            string anzahlText;   
+            int colRead = 15;   
+            int iList = 1;      
             //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
@@ -319,7 +312,6 @@ namespace EPLAN_TIA
                 {
                    adresseSW_HW1 = new List<SW_HW>(); //reload a new direction in memory for the next values. 
 
-                    //adresseSW_HW1.Clear(); //clear for the next iteration
                     serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
                     anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
 
@@ -338,8 +330,6 @@ namespace EPLAN_TIA
                         cpuPPAL = (string)(xlWorkSheet.Cells[line, 11] as Excel.Range).Value;
                         startAdresse = (string)(xlWorkSheet.Cells[line, 13] as Excel.Range).Value;
 
-                        //aqui declarar bucle que por cada linea de cada geraete me guarde en el diccionario <direccion SW, direccion HW>
-                        //
                         do
                         {
                             //--Read the SWpin data
@@ -592,10 +582,14 @@ namespace EPLAN_TIA
                 }
                 catch
                 {
+
+                    if (desIO == null && numIO == null) //when all the data is null in th excel export from TIA
+                    {
+                        finished = true;
+                    }
+
                     data = new conexionEPLAN(numIO, desIO, "", "", "The adress doesn´t appear in EPLAN"); //create a new variable to refer to that in the memory (we work with List)
                     dataNotSimilar.Add(data);
-
-                    
                     xlWorkSheet_4.Cells[line, 4].Interior.ColorIndex = 3;
                     xlWorkSheet_4.Cells[line, 4] = "The adress doesn´t appear in EPLAN";
                 }
@@ -609,12 +603,12 @@ namespace EPLAN_TIA
 
         //Show the data that its not the similar in both. 
 
-        public void ShowData()
+        public void ShowEnd()
         {
             Form2 form2 = new Form2();
             
             form2.ShowDialog();
-            form2.DisplayInfo(dataNotSimilar); 
+            
         }
 
         //Save and close Excel
@@ -837,24 +831,25 @@ namespace EPLAN_TIA
             //Load texts in english
 
             //Strings for messages
+
             errorMessage = errorMessageEN;
-
             executing = executingEN;
-
             programmFinished = programmFinishedEN;
             programmStopped = programmStoppedEN;
             nothingFound = nothingFoundEN;
-            longNamesTextBeggin = longNamesTextBegginEN;
-            longNamesTextEnd = longNamesTextEndEN;
-
             invalidPath = invalidPathEN;
 
             //Strings for buttons
+
             txtStatusLabel.Text = statusEN;
-            //txtSelect2.Text = txtPathField2EN;
             txtSelect1.Text = txtPathField1EN;
+            txtSelect2.Text = txtPathField2EN;
+            txtSelect3.Text = txtPathField3EN;
+            txtSelect4.Text= txtPathField4EN;
             btn_Path1.Text = browseEN;
             btn_Path2.Text = browseEN;
+            btn_Path3.Text = browseEN;
+            button1.Text = browseEN; 
             
 
 
@@ -915,12 +910,17 @@ namespace EPLAN_TIA
             invalidPath = invalidPathDE;
 
             //Strings for buttons
-            txtStatusLabel.Text = statusDE;
-            //txtSelect2.Text = txtPathField2DE;
+
+           
             txtSelect1.Text = txtPathField1DE;
+            txtSelect2.Text = txtPathField2DE;
+            txtSelect3.Text = txtPathField3DE;
+            txtSelect4.Text = txtPathField4DE;
             btn_Path1.Text = browseDE;
             btn_Path2.Text = browseDE;
-            
+            btn_Path3.Text = browseDE;
+            button1.Text = browseDE;
+
 
             //Change the text in txt_Status to german
             string text = txt_Status.Text;
@@ -992,7 +992,7 @@ namespace EPLAN_TIA
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"*.xlsx|*.xlsx";
+            dialog.Filter = @"*.xlsx|*.xlsx|(*.xls)|*.xls|(*.xlsm)|*.xlsm |(*.xlsb)|*.xlsb";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened
@@ -1016,7 +1016,7 @@ namespace EPLAN_TIA
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"*.xlsx|*.xlsx";
+            dialog.Filter = @"*.xlsx|*.xlsx|(*.xls)|*.xls|(*.xlsm)|*.xlsm|(*.xlsb)|*.xlsb";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened
@@ -1114,50 +1114,13 @@ namespace EPLAN_TIA
             }
         }
 
-        //sirve para chequear si queremos guardarlo como un .excel o bien .lc, 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            ////If the path for the .lc file is the folder where the Excel is
-            //if (checkBox1.Checked)
-            //{
-            //    //Disable buttons and labels to select a path
-            //    txt_Path2.Enabled = false;
-            //    btn_Path2.Enabled = false;
-            //    label5.Enabled = false;
-            //    //If there is a valid path to an Excel
-            //    if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
-            //    {
-            //        //Enable button to start the process
-            //        btn_Start.Enabled = true;
-            //    }
-            //}
-            ////If the path for the .lc file must be given
-            //else
-            //{
-            //    //Enable buttons and labels to select a path
-            //    txt_Path2.Enabled = true;
-            //    btn_Path2.Enabled = true;
-            //    label5.Enabled = true;
-            //    //If there is already a valid path where the .lc should be saved and a valid path to an Excel
-            //    if (!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text))
-            //    {
-            //        //Enable button to start the process
-            //        btn_Start.Enabled = true;
-            //    }
-            //    else
-            //    {
-            //        //Disable button to start the process
-            //        btn_Start.Enabled = false;
-            //    }
-            //}
-        }
-
+        
         private void button1_Click(object sender, EventArgs e)
         {
             //Open a File Dialog
             var dialog = new VistaOpenFileDialog();
             //Set filter to show only Excel files
-            dialog.Filter = @"(*.xlsx)|*.xlsx |(*.xlsm)|*.xlsm";
+            dialog.Filter = @"*.xlsx|*.xlsx|(*.xls)|*.xls|(*.xlsm)|*.xlsm|(*.xlsb)|*.xlsb";
             //Show Dialog
             dialog.ShowDialog();
             //Get the complete path of the Excel file to be opened

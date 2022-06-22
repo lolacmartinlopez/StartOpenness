@@ -55,8 +55,7 @@
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon>Resources\logo_edag_End.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
@@ -200,7 +199,7 @@
     <None Include="Resources\white_logo_png.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="logo-edag.ico" />
+    <Content Include="Resources\logo_edag_End.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
