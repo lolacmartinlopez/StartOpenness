@@ -108,8 +108,7 @@ namespace EPLAN_TIA
 
         string txtPathField1EN = "Select path where the Excel file is located";
         string txtPathField2EN = "Select path where the .lc files will be saved";
-        string txtCheckBoxEN= "Use Excels folder";
-
+       
         string browseEN = "Browse";
 
         string statusEN="Status";
@@ -137,7 +136,7 @@ namespace EPLAN_TIA
 
         string txtPathField1DE = "Wähle den Pfad, in dem sich die Excel Datei befindet";
         string txtPathField2DE = "Wähle den Pfad, in dem die .lc Dateien gespeichert werden sollen";
-        string txtCheckBoxDE = "Excels Ordner verwenden";
+       
 
         string browseDE = "Durchsuchen";
 
@@ -267,12 +266,14 @@ namespace EPLAN_TIA
 
             txt_Status.Text = "Comparing data between both programs";
 
+            //Compare data
             CompareEPLANTIA(xlWorkSheet_3);
 
 
             //ShowData();
 
             //Close the excel 3 and excel 4. 
+
             string path = txt_Path2.Text;
             string nameWork = "EPLAN_Datei.xlsx";
             string exportFilename = @"" + path + @"\" + nameWork;
@@ -284,24 +285,6 @@ namespace EPLAN_TIA
             //Save the excel 
 
             SaveCloseExcel(txt_Path4.Text, xlApp_4, xlWorkBook_4,xlWorkSheet_4, misValue); 
-
-
-
-            //ObteinAdressSftw(informationSPs);
-
-            //SaveCloseExcel(txt_Path2.Text, xlApp_3, xlWorkBook_3, misValue, 4);
-
-            //MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
-
-            ////Create a new TIA Project
-
-            //CreateProject();
-
-            ////Add the dispositives. 
-
-            //AddDisp(); 
-
-            //creamos la correlación de datos entre el excel2 y las salidas de cada uno de los gerätes del programa. 
 
 
             //Show message
@@ -442,8 +425,6 @@ namespace EPLAN_TIA
 
         }
 
-        
-      
         public void getinfConexion(int startColumn, List<InformationPLC> informationSPs,Excel.Worksheet xlWorksheet )
         {
             int line = 2;  //read from the second line. 
@@ -458,15 +439,10 @@ namespace EPLAN_TIA
             int position; 
             int newLine =1; //write from the first line. 
             bool finished=false;
-            //int numPLC = informationSPs.Count;
-            //int i = 0; 
+          
 
             xlWorksheet.Activate();
        
-            //Excel.Range excelSize= (Excel.Range)xlWorkSheet_2.Columns;
-            //int excelSizenum = (int)excelSize.ColumnWidth; 
-            int count = 0; 
-
             foreach (InformationPLC item in informationSPs)
             {   
                 do
@@ -543,18 +519,12 @@ namespace EPLAN_TIA
 
                 } while (!finished);
 
-                count++;
                 finished = false;
             }
 
             //at the end
 
-            //Excel.Range IO = xlWorksheet.Columns;
-
-            //IO.Sort(IO.Columns[2], )
             xlWorksheet.Columns.AutoFit();
-            
-
         }
 
 
@@ -569,13 +539,10 @@ namespace EPLAN_TIA
             string desIO = null; //Description IO from the TIA export
             string numIO_1 = null;//IO number from the EPLAN export
             string desIO_1 = null; //Description IO from the EPLAN export
-            string addInfo = null; 
             int line=1;
             bool finished = false;
             Excel.Range currentFind=null;
-            Excel.Range currentFind_1=null;
             Excel.Range range1;
-            Excel.Range range2; 
             conexionEPLAN data = new conexionEPLAN("null", "null", "null", "null", "null"); //create a new linked list. 
 
 
@@ -587,25 +554,25 @@ namespace EPLAN_TIA
                 numIO = (string)(xlWorkSheet_4.Cells[line, 1] as Excel.Range).Value;
                 desIO = (string)(xlWorkSheet_4.Cells[line, 2] as Excel.Range).Value;
 
+
                 //take the second and the forth column from the excel. 
 
                 range1 = xlWorksheet.Columns["B:B"] as Excel.Range;
-                //range2 = xlWorksheet.Columns["D:D"] as Excel.Range;
 
-                //search for that data. In currentFind will have the value of the position. 
+                //search for that data. In currentFind will be true/false 
 
                 try
                 {
-                    currentFind = range1.Find(numIO);//look for numIO on the excel 3. Later verify if it has the same name or not. 
-                    //currentFind_1 = range2.Find(desIO);//look for desIO on the excel 3.
+                    currentFind = range1.Find(numIO);//look for numIO on the excel 3. 
+                   
 
-                    if (currentFind.Find(numIO) != null /*|| currentFind_1.Find(desIO) != null*/) //at least one exist. 
+                    if (currentFind.Find(numIO) != null) //at least one exist. 
                     {
                         numIO_1 = (string)(xlWorksheet.Cells[currentFind.Row,2] as Excel.Range).Value; //will be the same value as numIO
                         desIO_1 = (string)(xlWorksheet.Cells[currentFind.Row,4] as Excel.Range).Value; //take what name have 
 
 
-                        if (desIO == null && numIO == null) //when all the data is null the programm will stop
+                        if (desIO == null && numIO == null) //when all the data is null in th excel export from TIA
                         {
                             finished = true;
                         }
@@ -614,9 +581,10 @@ namespace EPLAN_TIA
                         {
                             data = new conexionEPLAN(numIO,desIO,numIO_1,desIO_1, "The adress has not the correct name."); //create a new variable to refer to that in the memory (we work with List)
                             dataNotSimilar.Add(data);
+                           
 
-                            xlWorkSheet_4.Cells[line,4].Interior.Color= System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Orange);
-                            xlWorkSheet_4.Cells[line, 4] = "The adress has not the correct name."; 
+                            xlWorkSheet_4.Cells[line,4].Interior.ColorIndex= 45;
+                            xlWorkSheet_4.Cells[line,4] = "The adress has not the correct name."; 
                         }
                     }
 
@@ -626,22 +594,12 @@ namespace EPLAN_TIA
                 {
                     data = new conexionEPLAN(numIO, desIO, "", "", "The adress doesn´t appear in EPLAN"); //create a new variable to refer to that in the memory (we work with List)
                     dataNotSimilar.Add(data);
-                    xlWorkSheet_4.Cells[line, 4].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+
+                    
+                    xlWorkSheet_4.Cells[line, 4].Interior.ColorIndex = 3;
                     xlWorkSheet_4.Cells[line, 4] = "The adress doesn´t appear in EPLAN";
                 }
 
-
-                //Search in the other excel and verify if the value ist the same for the name and for the number. 
-                //if((numIO==numIO_1 && desIO!=desIO_1)|| (numIO == numIO_1 && desIO != desIO_1)|| (numIO != numIO_1 && desIO != desIO_1))
-                //if (!(numIO == numIO_1 && desIO == desIO_1)) //Data not similar in both. 
-                //{
-
-                //    data.pinIO = numIO;
-                //    data.modIO = desIO;
-                //    data.pinIO_1 = numIO_1;
-                //    data.modIO_1 = desIO_1;
-                //    dataNotSimilar.Add(data);
-                //}
 
                 line++;
             } while (!finished);
@@ -686,15 +644,16 @@ namespace EPLAN_TIA
             if (savePath.Contains(".xlsm"))
             {
                 savePath = savePath.Replace(".xlsm", " ");
-                savePath = savePath + "_neue.xlsm";
+                savePath = savePath + "_original.xlsm";
             }
 
-            xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
+
+            xlWorkbook1.Save(); //we select in each iteration what excel data want to save
 
             //Close the book and the APP. 
 
-                xlWorkbook1.Close(true);
-                xlAPP.Quit();
+            xlWorkbook1.Close(true);
+            xlAPP.Quit();
 
             //Kill the processes
 
@@ -896,7 +855,7 @@ namespace EPLAN_TIA
             txtSelect1.Text = txtPathField1EN;
             btn_Path1.Text = browseEN;
             btn_Path2.Text = browseEN;
-            checkBox1.Text = txtCheckBoxEN;
+            
 
 
             //Change the text in txt_Status to english
@@ -961,7 +920,7 @@ namespace EPLAN_TIA
             txtSelect1.Text = txtPathField1DE;
             btn_Path1.Text = browseDE;
             btn_Path2.Text = browseDE;
-            checkBox1.Text = txtCheckBoxDE;
+            
 
             //Change the text in txt_Status to german
             string text = txt_Status.Text;
@@ -1072,7 +1031,7 @@ namespace EPLAN_TIA
             if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
             {
                 label3.Text = "";
-                if((!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text))||checkBox1.Checked)
+                if((!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text)))
                 {
                     //Enable button "Start"
                     btn_Start.Enabled = true;
@@ -1158,39 +1117,39 @@ namespace EPLAN_TIA
         //sirve para chequear si queremos guardarlo como un .excel o bien .lc, 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            //If the path for the .lc file is the folder where the Excel is
-            if (checkBox1.Checked)
-            {
-                //Disable buttons and labels to select a path
-                txt_Path2.Enabled = false;
-                btn_Path2.Enabled = false;
-                label5.Enabled = false;
-                //If there is a valid path to an Excel
-                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
-                {
-                    //Enable button to start the process
-                    btn_Start.Enabled = true;
-                }
-            }
-            //If the path for the .lc file must be given
-            else
-            {
-                //Enable buttons and labels to select a path
-                txt_Path2.Enabled = true;
-                btn_Path2.Enabled = true;
-                label5.Enabled = true;
-                //If there is already a valid path where the .lc should be saved and a valid path to an Excel
-                if (!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text))
-                {
-                    //Enable button to start the process
-                    btn_Start.Enabled = true;
-                }
-                else
-                {
-                    //Disable button to start the process
-                    btn_Start.Enabled = false;
-                }
-            }
+            ////If the path for the .lc file is the folder where the Excel is
+            //if (checkBox1.Checked)
+            //{
+            //    //Disable buttons and labels to select a path
+            //    txt_Path2.Enabled = false;
+            //    btn_Path2.Enabled = false;
+            //    label5.Enabled = false;
+            //    //If there is a valid path to an Excel
+            //    if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
+            //    {
+            //        //Enable button to start the process
+            //        btn_Start.Enabled = true;
+            //    }
+            //}
+            ////If the path for the .lc file must be given
+            //else
+            //{
+            //    //Enable buttons and labels to select a path
+            //    txt_Path2.Enabled = true;
+            //    btn_Path2.Enabled = true;
+            //    label5.Enabled = true;
+            //    //If there is already a valid path where the .lc should be saved and a valid path to an Excel
+            //    if (!String.IsNullOrEmpty(txt_Path2.Text) && System.IO.Directory.Exists(txt_Path2.Text))
+            //    {
+            //        //Enable button to start the process
+            //        btn_Start.Enabled = true;
+            //    }
+            //    else
+            //    {
+            //        //Disable button to start the process
+            //        btn_Start.Enabled = false;
+            //    }
+            //}
         }
 
         private void button1_Click(object sender, EventArgs e)
