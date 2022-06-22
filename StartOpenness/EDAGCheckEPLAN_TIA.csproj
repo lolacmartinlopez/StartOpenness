@@ -8,8 +8,8 @@
     <ProjectGuid>{CF8677FB-0094-4AAA-9578-903A7447B032}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StartOpenness</RootNamespace>
-    <AssemblyName>Robot Joint App</AssemblyName>
+    <RootNamespace>EDAG_Check_EPLAN_TIA</RootNamespace>
+    <AssemblyName>EDAG_Check_EPLAN-TIA</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -90,25 +90,25 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="View\Form2.cs">
+    <Compile Include="Windows\Form2.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="View\Form2.Designer.cs">
+    <Compile Include="Windows\Form2.Designer.cs">
       <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
-    <Compile Include="View\Form1.cs">
+    <Compile Include="Windows\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="View\Form1.Designer.cs">
+    <Compile Include="Windows\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="View\Form2.resx">
+    <EmbeddedResource Include="Windows\Form2.resx">
       <DependentUpon>Form2.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="View\Form1.resx">
+    <EmbeddedResource Include="Windows\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -200,6 +200,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\logo_edag_End.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Models\" />
+    <Folder Include="Utilities\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
