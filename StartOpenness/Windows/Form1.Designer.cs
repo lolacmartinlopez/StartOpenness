@@ -455,7 +455,7 @@ namespace EPLAN_TIA
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::EDAG_Check_EPLAN_TIA.Properties.Resources.white_logo_png;
+            this.pictureBox1.Image = global::StartOpeness.Properties.Resources.white_logo_png;
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox1.Name = "pictureBox1";

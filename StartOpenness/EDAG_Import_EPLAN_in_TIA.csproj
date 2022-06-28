@@ -8,7 +8,7 @@
     <ProjectGuid>{CF8677FB-0094-4AAA-9578-903A7447B032}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EDAG_Import_EPLAN_in_TIA</RootNamespace>
+    <RootNamespace>StartOpeness</RootNamespace>
     <AssemblyName>EDAG_Import_EPLAN_in_TIA</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile>

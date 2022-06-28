@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EDAG_Import_EPLAN_in_TIA.Properties {
+namespace StartOpeness.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
