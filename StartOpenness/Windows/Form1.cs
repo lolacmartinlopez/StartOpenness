@@ -187,7 +187,11 @@ namespace EPLAN_TIA
             }
 
         }
-        
+
+
+        //Data to import in TIA 
+
+        string projectName; 
        
 
         //Load form
@@ -298,7 +302,28 @@ namespace EPLAN_TIA
 
             //Save the excel. 
 
-            SaveCloseExcel(txt_Path4.Text, xlApp_4, xlWorkBook_4,xlWorkSheet_4, misValue); 
+            SaveCloseExcel(txt_Path4.Text, xlApp_4, xlWorkBook_4,xlWorkSheet_4, misValue);
+
+            // Import the data in TIA. 
+
+                //Start Instance in TIA Portal.
+                StartTIA();
+                
+                //Create a new Project. 
+
+                CreateProject(); 
+
+                //Read the structure in informationSPs to import in TIA. 
+
+                
+                foreach(InformationPLC device in informationSPs)
+                {
+
+                    AddDisp(device.serialNum, device.eplanName, device.cpuPPAL, project); 
+                    
+                }
+                
+
 
 
             //Show message.
@@ -333,12 +358,13 @@ namespace EPLAN_TIA
             int line = 2;       
             string anzahlText;   
             int colRead = 15;   
-            int iList = 1;      
+            int iList = 1;
+            int cutString = 0; 
             //Repeat the process until an empty cell oof number of this geaete is found
             do
             {
-                try
-                {
+                //try
+                //{
                    adresseSW_HW1 = new List<SW_HW>(); //reload a new direction in memory for the next values. 
 
                     serialNum = (string)(xlWorkSheet.Cells[line, 1] as Excel.Range).Value;
@@ -355,8 +381,14 @@ namespace EPLAN_TIA
                         {
                             cpuPPALES++; //we have other CPU that is central CPU.
                         }
-
+                        
                         cpuPPAL = (string)(xlWorkSheet.Cells[line, 11] as Excel.Range).Value;
+                        cutString = cpuPPAL.IndexOf("=");
+                        cpuPPAL=cpuPPAL.Substring(cutString+1);
+                        cutString = cpuPPAL.IndexOf("+"); //reuse the variable 
+                        projectName = cpuPPAL.Substring(0, cutString);
+                        cutString = eplanMark.IndexOf("+");     
+                        eplanMark = eplanMark.Substring(cutString+1); //take only the name of each device. 
                         startAdresse = (string)(xlWorkSheet.Cells[line, 13] as Excel.Range).Value;
 
                         do
@@ -419,24 +451,24 @@ namespace EPLAN_TIA
                     }
                     
 
-                }
+                //}
                 //If the column of the SPS-Typ is empty
-                catch
-                {
-                    //Controll if there is more SPS Data
+                //catch
+                //{
+                //    //Controll if there is more SPS Data
 
-                    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
+                //    anzahlText = (string)(xlWorkSheet.Cells[line, 2] as Excel.Range).Value;
 
-                   if (anzahlText ==null)
-                    {
-                        finished1=true; //there are no more SPS data. 
-                    }
+                //   if (anzahlText ==null)
+                //    {
+                //        finished1=true; //there are no more SPS data. 
+                //    }
 
-                    else
-                    {
-                        line++; //read the next line
-                    }
-                }
+                //    else
+                //    {
+                //        line++; //read the next line
+                //    }
+                //}
 
                 txt_Status.Text = " Reading the data of the SPS";
 
@@ -688,25 +720,115 @@ namespace EPLAN_TIA
 
         //-- Functions for TIA Portal 
 
+        //Start instance TIA 
+
+        public void StartTIA()
+
+        {
+            
+                
+                    MyTiaPortal = new TiaPortal(TiaPortalMode.WithoutUserInterface);
+                    txt_Status.Text = "TIA Portal started with user interface"; // visualizacion en la interfaz de que se abre con/sin interfaz
+           
+
+        }
+
 
         //Create new Project 
 
-
         public void CreateProject()
         {
+
             ProjectComposition projectComposition = MyTiaPortal.Projects;
 
             //Create a new folder with the Project
-            DirectoryInfo targetDirectory = new DirectoryInfo(@"D:\TiaProjects");
+
+            DirectoryInfo targetDirectory = new DirectoryInfo(txt_Path5.Text); //take the directory that the user had introduced.
 
             // Create a project with name Myproject
-            Project project = projectComposition.Create(targetDirectory, "MyProject");
+
+            Project project = projectComposition.Create(targetDirectory, projectName); //take the name from the excel. 
         }
 
-        public void AddDisp()
+        private void AddDisp (string serNum, string nameDisp, string CPUPPAL, Project project) //nameDisp: for each eplanName ; CPUPPAL: exported from EPLAN
         {
             DeviceComposition currentDevices = project.Devices;
-            Device newDevice = currentDevices.CreateWithItem("OrderNumber:6ES7 510-1DJ01-0AB0/V2.0", "PLC_1", "New Device"); 
+            //int numberComp = 0; //the first device will be the number 0. LATER WE HAVE TO LOOK IF WE HAVE MORE DISPLAYS IN THE PROJECT
+            int pos = 0; //position in the rack
+            Device newDevice;
+            //HardwareObject newCPU;
+            
+            
+            //IoSystem IO_Moduls= null; 
+            //IoConnector IO_Connector;
+            //IoControllerComposition ioControllers;
+
+
+            if (nameDisp == CPUPPAL) 
+
+            {
+                 newDevice = currentDevices.CreateWithItem(serNum, nameDisp, "New Device"); //Create a new device. (CPU in the net topology)               
+                 //newRack.Name = nameDisp.Substring(0, nameDisp.IndexOf("-")); 
+                 //newCPU= newDevice.Items[numberComp]; //create inside the first Rack a PLC
+                 //numberComp++; //increment the position of the next device
+                 //SoftwareContainer plcSft = newPLC.Soft; //esto es para programar cada una de las CPu.
+
+
+            }
+
+             // not the CPU, add Modules to the CPU. 
+            else
+            {
+                if (currentDevices != null) //if we have at least 1 CPU. 
+
+                {
+
+                    //newDevice = currentDevices.CreateWithItem(serNum, nameDisp, "New Device"); //Create a new device. (CPU)
+                    //newRack = newDevice.Items[numberComp]; //obtein the current Rack
+                    
+                    foreach(Device device in currentDevices)
+                    {   
+                        
+                            
+                                if (device.Name == CPUPPAL) //in CPUPPAL we have the information of the CPU PPAL for each Modul from the excel(IO or similar) 
+                                {
+
+
+                                    if (device.CanPlugNew(serNum, nameDisp, pos))
+                                    {
+                                        DeviceItem newIO = device.PlugNew(serNum, nameDisp,pos);
+                                    }
+                               
+                                    pos++; //increment the position of the next device.
+                                }
+                 
+                    }
+
+
+                }
+
+            }
+                
+
+        }
+
+        //Not yet implemented. 
+        private void VerifyHardware (Device device) //Verify if for each CPU all the devices were introduced.  
+        {
+
+            DeviceItemComposition deviceItemComposition = device.DeviceItems;
+            if (deviceItemComposition != null)
+
+            {
+
+                foreach (DeviceItem deviceItem in deviceItemComposition)
+                {
+                    // add co
+                }
+
+            }
+            
+
 
         }
 
@@ -1067,6 +1189,16 @@ namespace EPLAN_TIA
             txt_Path3.Text = excelPath_3;
         }
 
+        private void btn_Path5_Click(object sender, EventArgs e)
+        {
+            VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog();
+            dialog.ShowDialog();
+            string txtPath_5 = dialog.SelectedPath.ToString();
+            //Show selected path
+            txt_Path5.Text = txtPath_5;
+        }
+
+
         private void txt_Path_TextChanged(object sender, EventArgs e)
         {
             //If txt_Path1 contains a valid path
@@ -1131,32 +1263,10 @@ namespace EPLAN_TIA
         //aqui se introduce el backup completo de los programas de un modelo (M2) 
         private void txt_Path3_TextChanged(object sender, EventArgs e)
         {
-            //If txt_Path1 contains a valid path
-            if (!String.IsNullOrEmpty(txt_Path3.Text) && System.IO.Directory.Exists(txt_Path3.Text))
-            {
-                label4.Text = "";
-                if (!String.IsNullOrEmpty(txt_Path1.Text) && System.IO.File.Exists(txt_Path1.Text))
-                {
-                    //Enable button "Start"
-                    btn_Start.Enabled = true;
-                }
 
-            }
-            else if (!String.IsNullOrEmpty(txt_Path3.Text) && !System.IO.Directory.Exists(txt_Path3.Text))
-            {
-                label4.Text = invalidPath;
-                //Disable button "Start"
-                btn_Start.Enabled = false;
-            }
-            else
-            {
-                label4.Text = "";
-                //Disable button "Start"
-                btn_Start.Enabled = false;
-            }
         }
 
-        
+
         private void button1_Click(object sender, EventArgs e)
         {
             //Open a File Dialog
@@ -1170,5 +1280,7 @@ namespace EPLAN_TIA
             //Show path selected in the upper textbox
             txt_Path4.Text = excelPath_4;
         }
+
+        
     }
 }

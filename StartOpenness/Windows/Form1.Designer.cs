@@ -67,6 +67,9 @@ namespace EPLAN_TIA
             this.button_Maximize = new System.Windows.Forms.Button();
             this.button_Exit = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.btn_Path5 = new System.Windows.Forms.Button();
+            this.txtSelect5 = new System.Windows.Forms.Label();
+            this.txt_Path5 = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -76,7 +79,7 @@ namespace EPLAN_TIA
             // txtSelect4
             // 
             this.txtSelect4.AutoSize = true;
-            this.txtSelect4.Location = new System.Drawing.Point(37, 243);
+            this.txtSelect4.Location = new System.Drawing.Point(37, 229);
             this.txtSelect4.Name = "txtSelect4";
             this.txtSelect4.Size = new System.Drawing.Size(190, 13);
             this.txtSelect4.TabIndex = 44;
@@ -101,7 +104,7 @@ namespace EPLAN_TIA
             this.btn_Start.Enabled = false;
             this.btn_Start.Font = new System.Drawing.Font("Arial", 9.2F, System.Drawing.FontStyle.Bold);
             this.btn_Start.ForeColor = System.Drawing.Color.White;
-            this.btn_Start.Location = new System.Drawing.Point(167, 311);
+            this.btn_Start.Location = new System.Drawing.Point(37, 345);
             this.btn_Start.Name = "btn_Start";
             this.btn_Start.Size = new System.Drawing.Size(89, 36);
             this.btn_Start.TabIndex = 17;
@@ -118,10 +121,10 @@ namespace EPLAN_TIA
             this.panel1.Controls.Add(this.version);
             this.panel1.Controls.Add(this.label8);
             this.panel1.Controls.Add(this.txt_Status);
-            this.panel1.Location = new System.Drawing.Point(0, 373);
+            this.panel1.Location = new System.Drawing.Point(0, 395);
             this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(431, 124);
+            this.panel1.Size = new System.Drawing.Size(431, 102);
             this.panel1.TabIndex = 34;
             // 
             // txtStatusLabel
@@ -141,7 +144,7 @@ namespace EPLAN_TIA
             this.version.AutoSize = true;
             this.version.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.version.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(85)))), ((int)(((byte)(97)))));
-            this.version.Location = new System.Drawing.Point(344, 93);
+            this.version.Location = new System.Drawing.Point(344, 71);
             this.version.Name = "version";
             this.version.Size = new System.Drawing.Size(55, 19);
             this.version.TabIndex = 29;
@@ -152,7 +155,7 @@ namespace EPLAN_TIA
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Arial", 8.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(85)))), ((int)(((byte)(97)))));
-            this.label8.Location = new System.Drawing.Point(26, 104);
+            this.label8.Location = new System.Drawing.Point(26, 74);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(282, 13);
             this.label8.TabIndex = 27;
@@ -164,6 +167,9 @@ namespace EPLAN_TIA
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.Color.White;
+            this.panel2.Controls.Add(this.btn_Path5);
+            this.panel2.Controls.Add(this.txtSelect5);
+            this.panel2.Controls.Add(this.txt_Path5);
             this.panel2.Controls.Add(this.txt_Path4);
             this.panel2.Controls.Add(this.button1);
             this.panel2.Controls.Add(this.txtSelect3);
@@ -183,7 +189,7 @@ namespace EPLAN_TIA
             this.panel2.Location = new System.Drawing.Point(0, 31);
             this.panel2.Margin = new System.Windows.Forms.Padding(2);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(431, 360);
+            this.panel2.Size = new System.Drawing.Size(431, 385);
             this.panel2.TabIndex = 26;
             // 
             // txt_Path4
@@ -232,7 +238,7 @@ namespace EPLAN_TIA
             this.btn_Path2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
             this.btn_Path2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_Path2.ForeColor = System.Drawing.Color.White;
-            this.btn_Path2.Location = new System.Drawing.Point(312, 291);
+            this.btn_Path2.Location = new System.Drawing.Point(312, 277);
             this.btn_Path2.Name = "btn_Path2";
             this.btn_Path2.Size = new System.Drawing.Size(89, 30);
             this.btn_Path2.TabIndex = 46;
@@ -286,7 +292,7 @@ namespace EPLAN_TIA
             this.txt_Path2.BackColor = System.Drawing.Color.White;
             this.txt_Path2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
             this.txt_Path2.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.txt_Path2.Location = new System.Drawing.Point(37, 262);
+            this.txt_Path2.Location = new System.Drawing.Point(37, 248);
             this.txt_Path2.Name = "txt_Path2";
             this.txt_Path2.Size = new System.Drawing.Size(364, 20);
             this.txt_Path2.TabIndex = 38;
@@ -464,6 +470,39 @@ namespace EPLAN_TIA
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
+            // btn_Path5
+            // 
+            this.btn_Path5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(156)))), ((int)(((byte)(163)))));
+            this.btn_Path5.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_Path5.ForeColor = System.Drawing.Color.White;
+            this.btn_Path5.Location = new System.Drawing.Point(311, 348);
+            this.btn_Path5.Name = "btn_Path5";
+            this.btn_Path5.Size = new System.Drawing.Size(89, 30);
+            this.btn_Path5.TabIndex = 54;
+            this.btn_Path5.Text = "Browse";
+            this.btn_Path5.UseVisualStyleBackColor = false;
+            this.btn_Path5.Click += new System.EventHandler(this.btn_Path5_Click);
+            // 
+            // txtSelect5
+            // 
+            this.txtSelect5.AutoSize = true;
+            this.txtSelect5.Location = new System.Drawing.Point(36, 300);
+            this.txtSelect5.Name = "txtSelect5";
+            this.txtSelect5.Size = new System.Drawing.Size(185, 13);
+            this.txtSelect5.TabIndex = 53;
+            this.txtSelect5.Text = "Select folder to create the TIA Project";
+            // 
+            // txt_Path5
+            // 
+            this.txt_Path5.BackColor = System.Drawing.Color.White;
+            this.txt_Path5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
+            this.txt_Path5.ForeColor = System.Drawing.SystemColors.WindowText;
+            this.txt_Path5.Location = new System.Drawing.Point(36, 319);
+            this.txt_Path5.Name = "txt_Path5";
+            this.txt_Path5.Size = new System.Drawing.Size(364, 20);
+            this.txt_Path5.TabIndex = 52;
+            this.txt_Path5.TextChanged += new System.EventHandler(this.txt_Path2_TextChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -523,6 +562,9 @@ namespace EPLAN_TIA
         private System.Windows.Forms.Label txtSelect3;
         private System.Windows.Forms.TextBox txt_Path4;
         private System.Windows.Forms.Label txtSelect4;
+        private System.Windows.Forms.Button btn_Path5;
+        private System.Windows.Forms.Label txtSelect5;
+        private System.Windows.Forms.TextBox txt_Path5;
     }
 }
 
