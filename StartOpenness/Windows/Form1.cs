@@ -48,10 +48,10 @@ namespace EPLAN_TIA
 
         //Excel excel = new Excel()
 
-        Excel.Application xlApp/*= new Excel.Application()*/; //Asi llamamos al tipo de formato que me viene con el excel.
-        Excel.Application xlApp_2/*= new Excel.Application()*/; //Asi llamamos al tipo de formato que me viene con el excel.
-        Excel.Application xlApp_3/*= new Excel.Application()*/; //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
-        Excel.Application xlApp_4 /*= new Excel.Application()*/; //Aqui vamos a guardar un nuevo excel con solo los datos de verbindung de los gearetes que son de interes en cada dispositivo de E/S
+        Excel.Application xlApp/*= new Excel.Application()*/; 
+        Excel.Application xlApp_2/*= new Excel.Application()*/; 
+        Excel.Application xlApp_3/*= new Excel.Application()*/; 
+        Excel.Application xlApp_4 /*= new Excel.Application()*/; 
 
         object misValue = System.Reflection.Missing.Value;
 
@@ -148,20 +148,20 @@ namespace EPLAN_TIA
         string statusDE = "Status";
         string invalidPathDE = "Ungültiger Pfad";
 
-        //Lista de objetos 
+        //Lists
 
         List<InformationPLC> informationSPs = new List<InformationPLC>(); //keep all the information of the differents SPS avaible
         List<conexionEPLAN> dataNotSimilar = new List<conexionEPLAN>();
 
-        //Ejemplo de como guardar la informacion del primer Excel. 
-        public class InformationPLC //cada dato de SPS lo escribimos y leemos de esta clase (de ahi que indiquemos metodo get y set 
+        //Class for the information of a PLC
+        public class InformationPLC 
         {
             public string serialNum { get; set; }
             public string eplanName { get; set; }
-            public string IP { get; set; }                                 //quizas luego tengo que ponerlo modo INT 
-            public string cpuPPAL { get; set; }                           //a que CPU esta conectada
-            public string startAdresse { get; set; }                     //start adresse de la tarjeta
-            public List<SW_HW> adresseSW_HW = new List<SW_HW>(); //guardaremos los datos de cada una de las conexiones físicas (E0.1... usw) con el dato que tiene en hardware (en el eplan) 
+            public string IP { get; set; }                                
+            public string cpuPPAL { get; set; }                          
+            public string startAdresse { get; set; }                    
+            public List<SW_HW> adresseSW_HW = new List<SW_HW>(); 
             
             public InformationPLC (string serianum, string eplanname, string ip, string cpuppal, string startadress, List <SW_HW> adresse_sw_hw)
             {
@@ -254,7 +254,7 @@ namespace EPLAN_TIA
 
             txt_Status.Text = "The information of the Excel SPS Verbindungen was correct readed";
 
-            //guardamos los datos importantes en un solo excel. Ya teniamos creado de antes el nuevo libro excel donde exportamos las cosas
+            //Write the relevant information in other Excel. 
 
             txt_Status.Text = "Exporting information to the new Excel";
 
@@ -267,7 +267,8 @@ namespace EPLAN_TIA
 
             txt_Status.Text = "Comparing data between both programs";
 
-            //Compare data
+            //Compare data.
+
             CompareEPLANTIA(xlWorkSheet_3);
 
 
@@ -295,14 +296,17 @@ namespace EPLAN_TIA
             Marshal.ReleaseComObject(xlApp_3);
             KillSpecificExcelFileProcess(nameWork);
 
-            //Save the excel 
+            //Save the excel. 
 
             SaveCloseExcel(txt_Path4.Text, xlApp_4, xlWorkBook_4,xlWorkSheet_4, misValue); 
 
 
-            //Show message
+            //Show message.
 
             txt_Status.Text = programmFinished;
+
+
+            //Kill the background opened processes. 
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -598,8 +602,8 @@ namespace EPLAN_TIA
                             dataNotSimilar.Add(data);
                            
 
-                            xlWorkSheet_4.Cells[line,5].Interior.ColorIndex= 45;
-                            xlWorkSheet_4.Cells[line,5] = "The adress has not the correct name."; 
+                            xlWorkSheet_4.Cells[line,4].Interior.ColorIndex= 45;
+                            xlWorkSheet_4.Cells[line,4] = "The adress has not the correct name."; 
                         }
                     }
 
@@ -667,7 +671,7 @@ namespace EPLAN_TIA
             }
 
 
-            xlWorkbook1.Save(); //we select in each iteration what excel data want to save
+            xlWorkbook1.SaveCopyAs(savePath); //we select in each iteration what excel data want to save
 
             //Close the book and the APP. 
 
@@ -686,6 +690,7 @@ namespace EPLAN_TIA
 
 
         //Create new Project 
+
 
         public void CreateProject()
         {

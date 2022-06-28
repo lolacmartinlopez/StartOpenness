@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EDAG_Check_EPLAN_TIA.Properties {
+namespace EDAG_Import_EPLAN_in_TIA.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
